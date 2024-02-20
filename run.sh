@@ -1,0 +1,1 @@
+#!/bin/bashpython ./multivariate-prediction/main.py
