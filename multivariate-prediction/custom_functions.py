@@ -5,11 +5,13 @@ Created on Tue Feb 20 17:49:39 2024
 
 @author: mesabo
 """
+
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 import json
 import os
+from keras.models import save_model, load_model
 
 def evaluate_model(testY, testPredict):
     mse = mean_squared_error(testY, testPredict)
@@ -42,18 +44,14 @@ def plot_evaluation_metrics(mse, mae, rmse, mape):
     plt.ylabel('Value')
     plt.show()
     
-def save_model(model, saving_path):
-        model.save(saving_path + ".h5")
-        
+    
 def save_evaluation_metrics(saving_path, model_type, mse, mae, rmse, mape):
-    # Load existing data from the file or initialize an empty dictionary
     if os.path.exists(saving_path):
         with open(saving_path, 'r') as file:
             evaluation_data = json.load(file)
     else:
         evaluation_data = {}
 
-    # Update or add metrics for the current model
     evaluation_data[model_type] = {
         'MSE': mse,
         'MAE': mae,
@@ -64,3 +62,42 @@ def save_evaluation_metrics(saving_path, model_type, mse, mae, rmse, mape):
     # Save the updated data back to the file
     with open(saving_path, 'w') as file:
         json.dump(evaluation_data, file, indent=2)
+
+def save_loss_to_txt(saving_path, model_type, history):
+    if os.path.exists(saving_path):
+        with open(saving_path, 'r') as file:
+            loss_data = json.load(file)
+    else:
+        loss_data = {}
+
+    loss_data[model_type] = {
+        'training_loss': history.history['loss'],
+        'validation_loss': history.history['val_loss']
+    }
+
+    with open(saving_path, 'w') as file:
+        json.dump(loss_data, file, indent=2)
+
+def save_trained_model(model, path):
+    save_model(model, path)
+
+def load_trained_model(path):
+    loaded_model = load_model(path)
+    return loaded_model
+
+def predict_next_x_days(model, X_new, days=7):
+    predictions = []
+
+    # Iterate over the next days
+    for i in range(days):
+        prediction = model.predict(X_new)
+        
+        predictions.append(prediction)
+        # Update X_new for the next iteration
+        # Shift the values by one day and append the new prediction
+        X_new = np.roll(X_new, -1, axis=1)
+        X_new[-1] = prediction[0] 
+
+    predictions = np.array(predictions)
+    
+    return predictions
