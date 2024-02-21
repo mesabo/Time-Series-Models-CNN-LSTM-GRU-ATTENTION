@@ -49,9 +49,11 @@ CNN_ATTENTION_BiGRU_MODEL = "CNN-Attention-BiGRU-based"
 
 
 # Define saving paths
-SAVING_PATH = "../output/models/"
-SAVING_METRICS_PATH = "../output/evaluation_metrics.json"
-SAVING_LOSSES_PATH = "../output/models_losses.json"
+SAVING_MODEL_DIR = "../output/models/"
+SAVING_METRIC_DIR = "../output/metrics/"
+SAVING_LOSS_DIR = "../output/losses/"
+SAVING_METRICS_PATH = "../output/metrics/evaluation_metrics.json"
+SAVING_LOSSES_PATH = "../output/losses/models_losses.json"
 
 # Define dataset paths
 DATASET_PATH = "../input/household_power_consumption.txt"  # Adjust as needed

@@ -25,23 +25,52 @@ def evaluate_model(testY, testPredict):
     print(f"[-----MAPE: {mape}-----]\n")
     return mse, mae, rmse, mape
 
-def plot_losses(history):
+
+def predict_next_x_days(model, X_new, days=7):
+    predictions = []
+
+    # Iterate over the next days
+    for i in range(days):
+        prediction = model.predict(X_new)
+        
+        predictions.append(prediction)
+        # Update X_new for the next iteration
+        # Shift the values by one day and append the new prediction
+        X_new = np.roll(X_new, -1, axis=1)
+        X_new[-1] = prediction[0] 
+
+    predictions = np.array(predictions)
+    
+    return predictions
+
+def plot_losses(history, model, save_path=None):
         plt.plot(history.history['loss'], label='Training Loss')
         plt.plot(history.history['val_loss'], label='Validation Loss')
-        plt.title('Model Loss')
+        plt.title(f'{model} - Model Loss')
         plt.xlabel('Epoch')
         plt.ylabel('Loss')
         plt.legend()
+        
+        if save_path:
+            file_name = f'{model}_evaluation_metrics.png'
+            file_path = os.path.join(save_path, file_name)
+            plt.savefig(file_path)
+        
         plt.show()
 
-def plot_evaluation_metrics(mse, mae, rmse, mape):
+def plot_evaluation_metrics(mse, mae, rmse, mape, model, save_path=None):
     metrics = ['MSE', 'MAE', 'RMSE']
     values = [mse, mae, rmse]
     
     plt.bar(metrics, values, color=['steelblue', 'limegreen', 'orangered'])
-    plt.title('Evaluation Metrics')
+    plt.title(f'{model} - Evaluation Metrics')
     plt.xlabel('Metric')
     plt.ylabel('Value')
+    if save_path:
+        file_name = f'{model}_evaluation_metrics.png'
+        file_path = os.path.join(save_path, file_name)
+        plt.savefig(file_path)
+    
     plt.show()
     
     
@@ -84,20 +113,3 @@ def save_trained_model(model, path):
 def load_trained_model(path):
     loaded_model = load_model(path)
     return loaded_model
-
-def predict_next_x_days(model, X_new, days=7):
-    predictions = []
-
-    # Iterate over the next days
-    for i in range(days):
-        prediction = model.predict(X_new)
-        
-        predictions.append(prediction)
-        # Update X_new for the next iteration
-        # Shift the values by one day and append the new prediction
-        X_new = np.roll(X_new, -1, axis=1)
-        X_new[-1] = prediction[0] 
-
-    predictions = np.array(predictions)
-    
-    return predictions
