@@ -8,16 +8,17 @@ Created on Tue Feb 20 17:49:39 2024
 
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.metrics import (mean_absolute_error, mean_squared_error,
+                             mean_absolute_percentage_error)
 import json
 import os
 from keras.models import save_model, load_model
 
 def evaluate_model(testY, testPredict):
-    mse = mean_squared_error(testY, testPredict)
-    mae = mean_absolute_error(testY, testPredict)
-    rmse = mean_squared_error(testY, testPredict, squared=False)
-    mape = np.mean(np.abs((testY - testPredict) / testY)) * 100
+    mse = round(mean_squared_error(testY, testPredict), 6)
+    mae = round(mean_absolute_error(testY, testPredict), 6)
+    rmse = round(mean_squared_error(testY, testPredict, squared=False), 6)
+    mape = round(mean_absolute_percentage_error(testY, testPredict), 8) * 100
     print(f"[-----MODEL METRICS-----]\n")
     print(f"[-----MSE: {mse}-----]\n")
     print(f"[-----MAE: {mae}-----]\n")
@@ -62,7 +63,7 @@ def plot_evaluation_metrics(mse, mae, rmse, mape, model, save_path=None):
     metrics = ['MSE', 'MAE', 'RMSE']
     values = [mse, mae, rmse]
     
-    plt.bar(metrics, values, color=['steelblue', 'limegreen', 'orangered'])
+    plt.bar(metrics, values, color=['orange', 'limegreen', 'steelblue'])
     plt.title(f'{model} - Evaluation Metrics')
     plt.xlabel('Metric')
     plt.ylabel('Value')
@@ -73,7 +74,22 @@ def plot_evaluation_metrics(mse, mae, rmse, mape, model, save_path=None):
     
     plt.show()
     
-    
+def plot_predictions(predicted, actual, model, save_path=None):
+    plt.figure(figsize=(10, 6))
+    plt.plot(actual[0], label='Actual')
+    plt.plot(predicted[0], label='Predicted')
+    plt.xlabel('Days')
+    plt.ylabel('Global Active Power')
+    plt.title(f'{model} - Actual vs Predicted')
+    plt.legend()
+    if save_path:
+        file_name = f'{model}_prediction.png'
+        file_path = os.path.join(save_path, file_name)
+        plt.savefig(file_path)
+        
+    plt.show()
+
+
 def save_evaluation_metrics(saving_path, model_type, mse, mae, rmse, mape):
     if os.path.exists(saving_path):
         with open(saving_path, 'r') as file:

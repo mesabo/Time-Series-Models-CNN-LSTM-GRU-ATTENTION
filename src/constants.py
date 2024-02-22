@@ -47,10 +47,17 @@ CNN_ATTENTION_GRU_MODEL = "CNN-Attention-GRU-based"
 CNN_ATTENTION_BiLSTM_MODEL = "CNN-Attention-BiLSTM-based"
 CNN_ATTENTION_BiGRU_MODEL = "CNN-Attention-BiGRU-based"
 
+# Custom Mode Deep Hybrid models
+CNN_ATTENTION_LSTM_ATTENTION_MODEL = "CNN-Attention-LSTM-Attention-based"
+CNN_ATTENTION_GRU_ATTENTION_MODEL = "CNN-Attention-GRU-Attention-based"
+CNN_ATTENTION_BiLSTM_ATTENTION_MODEL = "CNN-Attention-BiLSTM-Attention-based"
+CNN_ATTENTION_BiGRU_ATTENTION_MODEL = "CNN-Attention-BiGRU-Attention-based"
+
 
 # Define saving paths
 SAVING_MODEL_DIR = "../output/models/"
 SAVING_METRIC_DIR = "../output/metrics/"
+SAVING_PREDICTION_DIR = "../output/predictions/"
 SAVING_LOSS_DIR = "../output/losses/"
 SAVING_METRICS_PATH = "../output/metrics/evaluation_metrics.json"
 SAVING_LOSSES_PATH = "../output/losses/models_losses.json"
