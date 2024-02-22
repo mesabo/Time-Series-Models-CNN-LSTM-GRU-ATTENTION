@@ -7,6 +7,10 @@ Created on Tue Feb 20 18:35:52 2024
 """
 
 # Define model names as variables
+EPOCH = 100
+BATCH_SIZE = 64
+
+
 # Simple models
 LSTM_MODEL = "LSTM-based"
 GRU_MODEL = "GRU-based"
@@ -65,4 +69,5 @@ SAVING_LOSSES_PATH = "../output/losses/models_losses.json"
 # Define dataset paths
 DATASET_PATH = "../input/household_power_consumption.txt"  # Adjust as needed
 
+CHECK_PATH = "../output/checks/"
 

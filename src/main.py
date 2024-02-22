@@ -33,7 +33,7 @@ def run_model(look_back, forecast_period, trainX, trainY, valX, valY, testX, tes
     print(f'**************************************************************')
     print(f'**                {model_type}                **')
     print(f'**************************************************************')
-    model_name = SAVING_MODEL_DIR + model_type+'.h5'
+    model_name = SAVING_MODEL_DIR + model_type+'.keras'
     input_shape = (look_back, 1)
     
     model_lstm_based = build_model(len(trainX), model_type, input_shape, forecast_period)
@@ -70,7 +70,7 @@ def main():
     trainX, trainY, valX, valY, testX, testY, scaler = preprocess_and_split_dataset(dataset_path, look_back, forecast_period)
     
     ##### run one model at a time
-    #final_model = run_model(look_back, forecast_period, trainX, trainY, valX, valY, testX,testY, scaler, LSTM_MODEL)
+    #final_model = run_model(look_back, forecast_period, trainX, trainY, valX, valY, testX,testY, scaler, CNN_ATTENTION_BiGRU_ATTENTION_MODEL)
     #predictions = predict_next_x_days(final_model, testX[-14:])
     #print(predictions)
 

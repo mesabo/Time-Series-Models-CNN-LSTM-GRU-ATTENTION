@@ -12,8 +12,10 @@ from keras.layers import (LSTM, Dense, Flatten, Conv1D, MaxPooling1D, GRU,
                           Reshape, RepeatVector,Masking, Concatenate, dot,
                           Permute, Dropout, BatchNormalization)
 from keras.optimizers.legacy import Adam
-from keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from keras.callbacks import EarlyStopping, ReduceLROnPlateau,ModelCheckpoint
 import tensorflow as tf
+import tensorflow_addons as tfa
+
 from constants import (
     LSTM_MODEL, GRU_MODEL , CNN_MODEL, BiLSTM_MODEL , BiGRU_MODEL,
     LSTM_ATTENTION_MODEL, GRU_ATTENTION_MODEL , CNN_ATTENTION_MODEL , 
@@ -27,15 +29,15 @@ from constants import (
     CNN_ATTENTION_BiLSTM_ATTENTION_MODEL, CNN_ATTENTION_BiGRU_ATTENTION_MODEL,
     CNN_ATTENTION_LSTM_MODEL , CNN_ATTENTION_GRU_MODEL , 
     CNN_ATTENTION_BiLSTM_MODEL , CNN_ATTENTION_BiGRU_MODEL,
+    EPOCH, BATCH_SIZE, CHECK_PATH
 )
 
 def train_model(model, trainX, trainY, valX, valY):
     callbacks = [
         EarlyStopping(monitor="val_loss", patience=10, restore_best_weights=True),
-        ReduceLROnPlateau(factor=0.1, patience=8)
     ]
-    print(f"[---------------TRAINING MODEL---------------]\n")
-    history = model.fit(trainX, trainY, epochs=20, batch_size=70, validation_data=(valX, valY), callbacks=callbacks)
+    print(f"[---------------TRAINING MODEL ({model})---------------]\n")
+    history = model.fit(trainX, trainY, epochs=EPOCH, batch_size=BATCH_SIZE, validation_data=(valX, valY), callbacks=callbacks)
     return history
 
 def make_predictions(model, testX, testY, scaler):
@@ -46,8 +48,15 @@ def make_predictions(model, testX, testY, scaler):
     return testPredict, testFeature, testOutput
 
 def custom_optimizer(train_size):
-    # Adam optimizer with learning rate scheduler
-    optimizer =  Adam(learning_rate=1e-04, amsgrad=True)
+    steps_per_epoch = train_size // BATCH_SIZE
+    cyclic_lr = tfa.optimizers.CyclicalLearningRate(
+        initial_learning_rate=1e-04,
+        maximal_learning_rate=1e-02,
+        scale_fn=lambda x: 1 / (2 ** (x - 1)),
+        step_size=6 * steps_per_epoch,
+        )
+    
+    optimizer = Adam(learning_rate=cyclic_lr, amsgrad=True)
 
     return optimizer
 
