@@ -31,10 +31,11 @@ from constants import (
     CNN_ATTENTION_BiLSTM_MODEL , CNN_ATTENTION_BiGRU_MODEL,
     EPOCH, BATCH_SIZE, CHECK_PATH
 )
+import numpy as np
 
 def train_model(model, trainX, trainY, valX, valY):
     callbacks = [
-        EarlyStopping(monitor="val_loss", patience=10, restore_best_weights=True),
+        EarlyStopping(monitor="val_loss", patience=8, restore_best_weights=True),
     ]
     print(f"[---------------TRAINING MODEL ({model})---------------]\n")
     history = model.fit(trainX, trainY, epochs=EPOCH, batch_size=BATCH_SIZE, validation_data=(valX, valY), callbacks=callbacks)
@@ -42,10 +43,12 @@ def train_model(model, trainX, trainY, valX, valY):
 
 def make_predictions(model, testX, testY, scaler):
     testPredict = model.predict(testX)
-    testPredict = scaler.inverse_transform(testPredict)
-    testFeature = scaler.inverse_transform(testX)
+    
+    print(f"---------------------------------------------------------{np.array(testPredict).shape}")
+    #testPredict = scaler.inverse_transform(testPredict)
+    testPredict = np.array([scaler.inverse_transform(testPredict[:, i].reshape(-1, 1))[:, 0] for i in range(testPredict.shape[1])]).T
     testOutput = scaler.inverse_transform(testY)
-    return testPredict, testFeature, testOutput
+    return testPredict, testOutput
 
 def custom_optimizer(train_size):
     steps_per_epoch = train_size // BATCH_SIZE
@@ -126,6 +129,9 @@ def build_model(train_size, model_type, input_shape, forecast_period):
     else:
         raise ValueError("Invalid model type. Please choose from the available models.")
 
+#mean_absolute_error or mean_squared_error
+
+
 '''-----------------------------Simple models-------------------------------'''
 def build_lstm_model(train_size, input_shape, forecast_period):
     optimizer = custom_optimizer(train_size=train_size)
@@ -137,7 +143,7 @@ def build_lstm_model(train_size, input_shape, forecast_period):
     model.add(LSTM(200))
     model.add(Dropout(0.3))
     model.add(Dense(forecast_period))
-    model.compile(loss='mean_squared_error', optimizer=optimizer)
+    model.compile(loss='mean_absolute_error', optimizer=optimizer)
     return model
 
 def build_gru_model(train_size, input_shape, forecast_period):

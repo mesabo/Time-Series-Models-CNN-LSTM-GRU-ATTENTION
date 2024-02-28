@@ -37,7 +37,7 @@ def fill_missing_data(data, meth=2):
 def create_dataset(dataset, look_back, forecast_period):
     X, Y = [], []
     for i in range(len(dataset) - look_back - forecast_period + 1):
-        X.append(dataset[i:(i + look_back), 0])
+        X.append(dataset[i:(i + look_back), :])
         Y.append(dataset[(i + look_back):(i + look_back + forecast_period), 0])
     return np.array(X), np.array(Y)
 
@@ -60,13 +60,13 @@ def split_dataset(data_normalized, look_back, forecast_period):
 
 def preprocess_and_split_dataset(url, look_back, forecast_period):
     df = pd.read_csv(url, sep=';', parse_dates={'datetime': [
-                     'Date', 'Time']}, infer_datetime_format=True, na_values=['?'])
+                     'Date', 'Time']}, na_values=['?'])
     df = fill_missing_data(df, meth=2)
-    #selected_features = ['Global_active_power', 'Sub_metering_1', 'Sub_metering_2', 'Sub_metering_3']
-    selected_features = ['Global_active_power']
+    selected_features = ['Global_active_power', 'Sub_metering_1', 'Sub_metering_2', 'Sub_metering_3']
 
     data = df.set_index('datetime')[
         selected_features].resample('D').mean().dropna()
+    
     scaler = MinMaxScaler(feature_range=(0, 1))
     data_normalized = scaler.fit_transform(data.values.reshape(-1, 1))
 

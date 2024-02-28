@@ -40,7 +40,7 @@ def run_model(input_shape, forecast_period, trainX, trainY, valX, valY, testX, t
     
     history = train_model(model_lstm_based, trainX, trainY, valX, valY)
 
-    testPredict, testFeature, testOutput = make_predictions(model_lstm_based, testX, testY, scaler)
+    testPredict, testOutput = make_predictions(model_lstm_based, testX, testY, scaler)
     
     plot_predictions(testPredict, testOutput, model_type, SAVING_PREDICTION_DIR)
     
@@ -63,11 +63,11 @@ def main():
     # Define look back period and forecast period
     look_back = 7
     forecast_period = 7
-    input_shape = (look_back, 1) 
+    num_features = 1  # Number of features being used
+    input_shape = (look_back, num_features) 
 
     # Preprocess and split dataset
     trainX, trainY, valX, valY, testX, testY, scaler = preprocess_and_split_dataset(dataset_path, look_back, forecast_period)
-    
     
     
     ##### run one model at a time
