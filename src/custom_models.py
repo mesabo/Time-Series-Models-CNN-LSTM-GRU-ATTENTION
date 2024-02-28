@@ -11,7 +11,7 @@ from keras.layers import (LSTM, Dense, Flatten, Conv1D, MaxPooling1D, GRU,
                           Bidirectional, TimeDistributed, Attention, Input,
                           Reshape, RepeatVector,Masking, Concatenate, dot,
                           Permute, Dropout, BatchNormalization)
-from keras.optimizers.legacy import Adam
+from keras.optimizers import Adam
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau,ModelCheckpoint
 import tensorflow as tf
 import tensorflow_addons as tfa

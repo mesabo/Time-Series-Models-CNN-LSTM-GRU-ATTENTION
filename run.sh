@@ -1,1 +1,1 @@
-#!/bin/bashpython ./multivariate-prediction/main.py
+#!/bin/bashpython ./src/main.py
