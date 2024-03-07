@@ -209,7 +209,7 @@ def build_cnn_model(train_size, input_shape, forecast_period):
     model.add(BatchNormalization())
     model.add(MaxPooling1D(pool_size=2))
     model.add(Flatten())
-    model.add(Dense(32,activation='relu'))
+    model.add(Dense(32,activation='softmax'))
     model.add(Dense(forecast_period))
     model.compile(loss='mean_squared_error', optimizer=optimizer)
     return model
