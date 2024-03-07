@@ -62,7 +62,8 @@ def preprocess_and_split_dataset(url, look_back, forecast_period):
     df = pd.read_csv(url, sep=';', parse_dates={'datetime': [
                      'Date', 'Time']}, na_values=['?'])
     df = fill_missing_data(df, meth=2)
-    selected_features = ['Global_active_power', 'Sub_metering_1', 'Sub_metering_2', 'Sub_metering_3']
+    #selected_features = ['Global_active_power', 'Sub_metering_1', 'Sub_metering_2', 'Sub_metering_3']
+    selected_features = ['Global_active_power']
 
     data = df.set_index('datetime')[
         selected_features].resample('D').mean().dropna()

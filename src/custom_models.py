@@ -6,6 +6,8 @@ Created on Tue Feb 20 17:49:19 2024
 @author: mesabo
 """
 
+from sklearn.model_selection import GridSearchCV
+
 from keras.models import Sequential, Model
 from keras.layers import (LSTM, Dense, Flatten, Conv1D, MaxPooling1D, GRU, 
                           Bidirectional, TimeDistributed, Attention, Input,
@@ -13,8 +15,11 @@ from keras.layers import (LSTM, Dense, Flatten, Conv1D, MaxPooling1D, GRU,
                           Permute, Dropout, BatchNormalization)
 from keras.optimizers import Adam
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau,ModelCheckpoint
+from keras.optimizers import Adam, SGD, RMSprop
+from keras.wrappers.scikit_learn import KerasClassifier, KerasRegressor
+
+from tensorflow.keras.optimizers.schedules import ExponentialDecay
 import tensorflow as tf
-import tensorflow_addons as tfa
 
 from constants import (
     LSTM_MODEL, GRU_MODEL , CNN_MODEL, BiLSTM_MODEL , BiGRU_MODEL,
@@ -29,7 +34,7 @@ from constants import (
     CNN_ATTENTION_BiLSTM_ATTENTION_MODEL, CNN_ATTENTION_BiGRU_ATTENTION_MODEL,
     CNN_ATTENTION_LSTM_MODEL , CNN_ATTENTION_GRU_MODEL , 
     CNN_ATTENTION_BiLSTM_MODEL , CNN_ATTENTION_BiGRU_MODEL,
-    EPOCH, BATCH_SIZE, CHECK_PATH
+    EPOCH, BATCH_SIZE, CHECK_PATH, PARAMS_GRID
 )
 import numpy as np
 
@@ -50,16 +55,26 @@ def make_predictions(model, testX, testY, scaler):
     testOutput = scaler.inverse_transform(testY)
     return testPredict, testOutput
 
-def custom_optimizer(train_size):
+def custom_optimizer(train_size, optimizer_type='adam'):
     steps_per_epoch = train_size // BATCH_SIZE
-    cyclic_lr = tfa.optimizers.CyclicalLearningRate(
-        initial_learning_rate=1e-04,
-        maximal_learning_rate=1e-02,
-        scale_fn=lambda x: 1 / (2 ** (x - 1)),
-        step_size=6 * steps_per_epoch,
-        )
+    initial_learning_rate = 1e-2
+    decay_steps = 10000
+    decay_rate = 0.9
     
-    optimizer = Adam(learning_rate=cyclic_lr, amsgrad=True)
+    lr_schedule = ExponentialDecay(
+        initial_learning_rate=initial_learning_rate,
+        decay_steps=decay_rate * steps_per_epoch,
+        decay_rate=decay_rate
+    )
+
+    if optimizer_type == 'adam':
+        optimizer = Adam(learning_rate=lr_schedule, amsgrad=True)
+    elif optimizer_type == 'sgd':
+        optimizer = SGD(learning_rate=lr_schedule, momentum=0.9)
+    elif optimizer_type == 'rmsprop':
+        optimizer = RMSprop(learning_rate=lr_schedule)
+    else:
+        raise ValueError("Unknown optimizer type. Supported types are 'adam', 'sgd', and 'rmsprop'.")
 
     return optimizer
 
@@ -133,18 +148,41 @@ def build_model(train_size, model_type, input_shape, forecast_period):
 
 
 '''-----------------------------Simple models-------------------------------'''
-def build_lstm_model(train_size, input_shape, forecast_period):
+def build_lstm_model(train_size, input_shape, forecast_period, optimizer='adam'):
     optimizer = custom_optimizer(train_size=train_size)
     
     model = Sequential()
     model.add(Masking(mask_value=0., input_shape=input_shape))
-    model.add(LSTM(200, return_sequences=True))
+    model.add(LSTM(200, return_sequences=True, activation='relu'))
     model.add(Dropout(0.3))
-    model.add(LSTM(200))
+    model.add(LSTM(200, activation='relu'))
     model.add(Dropout(0.3))
-    model.add(Dense(forecast_period))
+    model.add(Dense(forecast_period, activation='softmax'))
     model.compile(loss='mean_absolute_error', optimizer=optimizer)
     return model
+
+
+def tune_hyperparameters(input_shape, model_type, forecast_period, trainX, trainY):
+    hyper_model = build_model(len(trainX), model_type, input_shape, forecast_period)
+
+    model = KerasRegressor(build_fn=lambda: hyper_model, epochs=EPOCH, batch_size=BATCH_SIZE, verbose=0)
+
+    ts, mt, iz, fp = [len(trainX)], [model_type], [input_shape], [forecast_period]
+    batch_size = [10, 20, 40, 60, 80, 100]
+    epochs = [10, 50, 100]
+    optimizer= ['adam', 'sgd', 'rmsprop'],
+    param_grid = dict(batch_size=batch_size, epochs=epochs, 
+                      #train_size=ts, 
+                      #model_type=mt, input_shape=iz, forecast_period=fp, 
+                      optimizer=optimizer )
+    
+    grid = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, scoring='neg_mean_absolute_error', verbose=2)
+    grid_result = grid.fit(trainX, trainY)
+
+    # Summarize results
+    print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
+    return grid_result.best_params_
+    
 
 def build_gru_model(train_size, input_shape, forecast_period):
     optimizer = custom_optimizer(train_size=train_size)

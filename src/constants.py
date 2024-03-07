@@ -9,7 +9,17 @@ Created on Tue Feb 20 18:35:52 2024
 # Define model names as variables
 EPOCH = 100
 BATCH_SIZE = 64
-
+SEEDER = 42
+PARAMS_GRID = {
+    'optimizer': ['adam', 'sgd', 'rmsprop'],
+    'num_layers': [1, 2],
+    'units': [100],
+    'dropout_rate': [0.2, 0.3],
+    'attention_units': [100],
+    'filters': [32, 64, 128],
+    'kernel_size': [3],
+    'activation': ['relu', 'tanh', 'sigmoid']
+}
 
 # Simple models
 LSTM_MODEL = "LSTM-based"
@@ -70,4 +80,5 @@ SAVING_LOSSES_PATH = "../output/losses/models_losses.json"
 DATASET_PATH = "../input/household_power_consumption.txt"  # Adjust as needed
 
 CHECK_PATH = "../output/checks/"
+CHECK_HYPERBAND = "../output/hyperband/"
 

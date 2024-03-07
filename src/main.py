@@ -5,13 +5,16 @@ Created on Tue Feb 20 17:48:44 2024
 
 @author: mesabo
 """
-
+import numpy as np
+import tensorflow as tf
 from data_processing import preprocess_and_split_dataset
-from custom_models import build_model, train_model, make_predictions
+from custom_models import (build_model, train_model, make_predictions,
+                           tune_hyperparameters)
 from custom_functions import (evaluate_model, plot_losses, plot_evaluation_metrics,
                               save_model, save_evaluation_metrics,save_loss_to_txt,
                               predict_next_x_days,save_trained_model,
                               load_trained_model, plot_predictions )
+from hyperparameter_tuning import (build_lstm_model, tune_custom_model)
 from constants import (
     LSTM_MODEL, GRU_MODEL , CNN_MODEL, BiLSTM_MODEL , BiGRU_MODEL,
     LSTM_ATTENTION_MODEL, GRU_ATTENTION_MODEL , CNN_ATTENTION_MODEL , 
@@ -26,7 +29,7 @@ from constants import (
     CNN_ATTENTION_LSTM_MODEL , CNN_ATTENTION_GRU_MODEL , 
     CNN_ATTENTION_BiLSTM_MODEL , CNN_ATTENTION_BiGRU_MODEL,
     DATASET_PATH, SAVING_MODEL_DIR, SAVING_METRIC_DIR, SAVING_LOSS_DIR, 
-    SAVING_PREDICTION_DIR, SAVING_METRICS_PATH, SAVING_LOSSES_PATH, 
+    SAVING_PREDICTION_DIR, SAVING_METRICS_PATH, SAVING_LOSSES_PATH, SEEDER,
 )
 
 def run_model(input_shape, forecast_period, trainX, trainY, valX, valY, testX, testY, scaler, model_type):
@@ -57,6 +60,11 @@ def run_model(input_shape, forecast_period, trainX, trainY, valX, valY, testX, t
     
     
 def main():
+    # Set random seed for TensorFlow
+    tf.random.set_seed(SEEDER)
+    # Set random seed for NumPy
+    np.random.seed(SEEDER)
+
     # Define dataset path
     dataset_path = DATASET_PATH if DATASET_PATH else "../input/household_power_consumption.csv"
 
@@ -68,10 +76,12 @@ def main():
 
     # Preprocess and split dataset
     trainX, trainY, valX, valY, testX, testY, scaler = preprocess_and_split_dataset(dataset_path, look_back, forecast_period)
+    dataX = (trainX, trainY, valX, valY)
     
-    
+    best_params = tune_custom_model(dataX, input_shape, forecast_period, CNN_MODEL)
+    print(f"----------BEST PARAMS----------\n{best_params.values}")
     ##### run one model at a time
-    final_model = run_model(input_shape, forecast_period, trainX, trainY, valX, valY, testX,testY, scaler, LSTM_MODEL)
+    #final_model = run_model(input_shape, forecast_period, trainX, trainY, valX, valY, testX,testY, scaler, LSTM_MODEL)
     #predictions = predict_next_x_days(final_model, testX[-14:])
     #print(predictions)
 
