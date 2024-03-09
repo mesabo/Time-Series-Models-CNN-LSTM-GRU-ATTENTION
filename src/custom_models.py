@@ -5,7 +5,8 @@ Created on Tue Feb 20 17:49:19 2024
 
 @author: mesabo
 """
-
+from math import ceil
+import numpy as np
 from sklearn.model_selection import GridSearchCV
 
 from keras.models import Sequential, Model
@@ -13,10 +14,10 @@ from keras.layers import (LSTM, Dense, Flatten, Conv1D, MaxPooling1D, GRU,
                           Bidirectional, TimeDistributed, Attention, Input,
                           Reshape, RepeatVector,Masking, Concatenate, dot,
                           Permute, Dropout, BatchNormalization)
-from keras.optimizers import Adam
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau,ModelCheckpoint
 from keras.optimizers import Adam, SGD, RMSprop
 from keras.wrappers.scikit_learn import KerasClassifier, KerasRegressor
+from keras.regularizers import l1, l2
 
 from tensorflow.keras.optimizers.schedules import ExponentialDecay
 import tensorflow as tf
@@ -36,7 +37,6 @@ from constants import (
     CNN_ATTENTION_BiLSTM_MODEL , CNN_ATTENTION_BiGRU_MODEL,
     EPOCH, BATCH_SIZE, CHECK_PATH, PARAMS_GRID
 )
-import numpy as np
 
 def train_model(model, trainX, trainY, valX, valY):
     callbacks = [
@@ -87,7 +87,8 @@ def build_model(train_size, model_type, input_shape, forecast_period):
     elif model_type == GRU_MODEL:
         return build_gru_model(train_size, input_shape, forecast_period)
     elif model_type == CNN_MODEL:
-        return build_cnn_model(train_size, input_shape, forecast_period)
+        #return build_cnn_model(train_size, input_shape, forecast_period)
+        return build_final_cnn_model(input_shape, forecast_period)
     #-----------------------------Simple Bi models-------------------------------
     elif model_type == BiLSTM_MODEL:
         return build_bilstm_model(train_size, input_shape, forecast_period)
@@ -214,6 +215,73 @@ def build_cnn_model(train_size, input_shape, forecast_period):
     model.compile(loss='mean_squared_error', optimizer=optimizer)
     return model
 
+from keras.regularizers import l1, l2
+
+# Best parameters obtained from hyperparameter tuning
+best_params =  {
+  "num_layers": 2,
+  "learning_rate": 0.001,
+  "decay_steps": 20000,
+  "optimizer": "rmsprop",
+  "dropout_rate": 0.1,
+  "l1_regularizer": 0.001,
+  "l2_regularizer": 0.001,
+  "filters_0": 128,
+  "kernel_size_0": 3,
+  "filters_1": 128,
+  "kernel_size_1": 1,
+  "filters_2": 32,
+  "kernel_size_2": 1,
+}
+
+def c_optimizer(hp_learning_rate, decay_steps, hp_optimizer_choice):
+    decay_rate = 0.9
+    lr_schedule = ExponentialDecay(
+        initial_learning_rate=hp_learning_rate,
+        decay_steps=decay_steps,
+        decay_rate=decay_rate
+    )
+
+    if hp_optimizer_choice == 'adam':
+        optimizer = Adam(learning_rate=lr_schedule, amsgrad=True)
+    elif hp_optimizer_choice == 'sgd':
+        optimizer = SGD(learning_rate=lr_schedule, momentum=0.9)
+    elif hp_optimizer_choice == 'rmsprop':
+        optimizer = RMSprop(learning_rate=lr_schedule)
+    else:
+        raise ValueError("Unknown optimizer type. Supported types are 'adam', 'sgd', and 'rmsprop'.")
+
+    return optimizer
+
+def build_final_cnn_model(input_shape, forecast_period):
+    model = Sequential()
+    model.add(Masking(mask_value=0., input_shape=input_shape))
+    
+    for i in range(best_params['num_layers']):
+        filters = best_params[f'filters_{i}']
+        kernel_size = best_params[f'kernel_size_{i}']
+
+        model.add(Conv1D(filters=filters, kernel_size=kernel_size, activation='relu', padding='same'))
+        model.add(BatchNormalization())
+        
+        pool_size = ceil(model.layers[-1].output_shape[1] / 2)
+        if pool_size > 1:
+            model.add(MaxPooling1D(pool_size=pool_size))
+        else:
+            model.add(MaxPooling1D(pool_size=1))
+        
+        model.add(Dropout(rate=best_params['dropout_rate']))
+
+    model.add(Flatten())
+    model.add(Dense(32, activation='relu', kernel_regularizer=l1(best_params['l1_regularizer']), 
+                    activity_regularizer=l2(best_params['l2_regularizer'])))
+    model.add(Dense(forecast_period, activation='linear'))
+    
+    # Compile the model with the specified optimizer and loss function
+    optimizer = c_optimizer(best_params['learning_rate'], best_params['decay_steps'], best_params['optimizer'])
+    model.compile(loss='mean_absolute_error', optimizer=optimizer)
+    
+    return model
 '''-----------------------------Simple Bi models-------------------------------'''
 def build_bilstm_model(train_size, input_shape, forecast_period):
     optimizer = custom_optimizer(train_size=train_size)
@@ -362,7 +430,6 @@ def build_bigru_attention_model(train_size, input_shape, forecast_period):
 
 
 '''-----------------------------Hybrid models-------------------------------'''
-
 def build_cnn_lstm_model(train_size, input_shape, forecast_period):
     optimizer = custom_optimizer(train_size=train_size)
     

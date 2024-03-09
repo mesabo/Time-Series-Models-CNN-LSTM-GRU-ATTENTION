@@ -123,6 +123,22 @@ def save_loss_to_txt(saving_path, model_type, history):
     with open(saving_path, 'w') as file:
         json.dump(loss_data, file, indent=2)
 
+def save_best_params(saving_path, model_type, best_hps):
+    if os.path.exists(saving_path):
+        with open(saving_path, 'r') as file:
+            evaluation_data = json.load(file)
+
+    else:
+        evaluation_data = {}
+
+    # Update or add the hyperparameters for the model type
+    evaluation_data[model_type] = best_hps.values
+    #print(evaluation_data)
+
+    # Save the updated data back to the file
+    with open(saving_path, 'w') as file:
+        json.dump(evaluation_data, file, indent=2)
+
 def save_trained_model(model, path):
     save_model(model, path)
 

@@ -81,4 +81,5 @@ DATASET_PATH = "../input/household_power_consumption.txt"  # Adjust as needed
 
 CHECK_PATH = "../output/checks/"
 CHECK_HYPERBAND = "../output/hyperband/"
+CHECK_HYPERBAND_PATH = "../output/hyperband/best_params.json"
 

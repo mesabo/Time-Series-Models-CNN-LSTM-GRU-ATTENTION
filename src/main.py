@@ -13,7 +13,7 @@ from custom_models import (build_model, train_model, make_predictions,
 from custom_functions import (evaluate_model, plot_losses, plot_evaluation_metrics,
                               save_model, save_evaluation_metrics,save_loss_to_txt,
                               predict_next_x_days,save_trained_model,
-                              load_trained_model, plot_predictions )
+                              load_trained_model, plot_predictions, save_best_params)
 from hyperparameter_tuning import (build_lstm_model, tune_custom_model)
 from constants import (
     LSTM_MODEL, GRU_MODEL , CNN_MODEL, BiLSTM_MODEL , BiGRU_MODEL,
@@ -30,6 +30,7 @@ from constants import (
     CNN_ATTENTION_BiLSTM_MODEL , CNN_ATTENTION_BiGRU_MODEL,
     DATASET_PATH, SAVING_MODEL_DIR, SAVING_METRIC_DIR, SAVING_LOSS_DIR, 
     SAVING_PREDICTION_DIR, SAVING_METRICS_PATH, SAVING_LOSSES_PATH, SEEDER,
+    CHECK_HYPERBAND_PATH
 )
 
 def run_model(input_shape, forecast_period, trainX, trainY, valX, valY, testX, testY, scaler, model_type):
@@ -58,7 +59,7 @@ def run_model(input_shape, forecast_period, trainX, trainY, valX, valY, testX, t
     
     return model_lstm_based
     
-    
+
 def main():
     # Set random seed for TensorFlow
     tf.random.set_seed(SEEDER)
@@ -78,10 +79,34 @@ def main():
     trainX, trainY, valX, valY, testX, testY, scaler = preprocess_and_split_dataset(dataset_path, look_back, forecast_period)
     dataX = (trainX, trainY, valX, valY)
     
-    best_params = tune_custom_model(dataX, input_shape, forecast_period, CNN_MODEL)
-    print(f"----------BEST PARAMS----------\n{best_params.values}")
+    
+    
+    ##### HYPER PARAMETER TUNING  ALL THE MODELS
+    model_types = [
+        LSTM_MODEL, GRU_MODEL , CNN_MODEL, BiLSTM_MODEL , BiGRU_MODEL,
+        LSTM_ATTENTION_MODEL, GRU_ATTENTION_MODEL , CNN_ATTENTION_MODEL , 
+        BiLSTM_ATTENTION_MODEL , BiGRU_ATTENTION_MODEL , 
+        CNN_LSTM_MODEL, CNN_GRU_MODEL, CNN_BiLSTM_MODEL, CNN_BiGRU_MODEL,
+        CNN_LSTM_ATTENTION_MODEL , CNN_GRU_ATTENTION_MODEL , 
+        CNN_BiLSTM_ATTENTION_MODEL , CNN_BiGRU_ATTENTION_MODEL , 
+        CNN_ATTENTION_LSTM_MODEL , CNN_ATTENTION_GRU_MODEL , 
+        CNN_ATTENTION_BiLSTM_MODEL , CNN_ATTENTION_BiGRU_MODEL,
+        CNN_ATTENTION_LSTM_ATTENTION_MODEL,CNN_ATTENTION_GRU_ATTENTION_MODEL, 
+        CNN_ATTENTION_BiLSTM_ATTENTION_MODEL, CNN_ATTENTION_BiGRU_ATTENTION_MODEL,]
+    
+    
+    
+    for model in model_types: 
+        best_params = tune_custom_model(dataX, input_shape, forecast_period, model)
+        save_best_params(CHECK_HYPERBAND_PATH, model, best_params)
+        print(f"----------BEST PARAMS----------\n{best_params.values}")
+        
+        
+        
+        
+        
     ##### run one model at a time
-    #final_model = run_model(input_shape, forecast_period, trainX, trainY, valX, valY, testX,testY, scaler, LSTM_MODEL)
+    #final_model = run_model(input_shape, forecast_period, trainX, trainY, valX, valY, testX,testY, scaler, CNN_MODEL)
     #predictions = predict_next_x_days(final_model, testX[-14:])
     #print(predictions)
 
