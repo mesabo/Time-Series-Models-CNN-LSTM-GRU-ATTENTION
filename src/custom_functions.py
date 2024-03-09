@@ -14,6 +14,18 @@ import json
 import os
 from keras.models import save_model, load_model
 
+def format_duration(duration):
+    if duration < 60:
+        return f"{duration:.2f} s"
+    elif duration < 3600:
+        return f"{duration / 60:.2f} min"
+    elif duration < 86400:
+        return f"{duration / 3600:.2f} h"
+    elif duration < 31536000:
+        return f"{duration / 86400:.2f} d"
+    else:
+        return f"{duration / 31536000:.2f} year"
+    
 def evaluate_model(testY, testPredict):
     mse = round(mean_squared_error(testY, testPredict), 6)
     mae = round(mean_absolute_error(testY, testPredict), 6)
@@ -123,7 +135,7 @@ def save_loss_to_txt(saving_path, model_type, history):
     with open(saving_path, 'w') as file:
         json.dump(loss_data, file, indent=2)
 
-def save_best_params(saving_path, model_type, best_hps):
+def save_best_params(saving_path, model_type, best_hps, total_time):
     if os.path.exists(saving_path):
         with open(saving_path, 'r') as file:
             evaluation_data = json.load(file)
@@ -133,7 +145,7 @@ def save_best_params(saving_path, model_type, best_hps):
 
     # Update or add the hyperparameters for the model type
     evaluation_data[model_type] = best_hps.values
-    #print(evaluation_data)
+    evaluation_data[model_type]['processing_time'] = format_duration(total_time)
 
     # Save the updated data back to the file
     with open(saving_path, 'w') as file:

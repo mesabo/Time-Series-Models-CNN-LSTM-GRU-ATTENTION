@@ -5,6 +5,8 @@ Created on Tue Feb 20 17:48:44 2024
 
 @author: mesabo
 """
+
+import time
 import numpy as np
 import tensorflow as tf
 from data_processing import preprocess_and_split_dataset
@@ -96,9 +98,12 @@ def main():
     
     
     
-    for model in model_types: 
+    for model in model_types:
+        start_time = time.time()
         best_params = tune_custom_model(dataX, input_shape, forecast_period, model)
-        save_best_params(CHECK_HYPERBAND_PATH, model, best_params)
+        end_time = time.time()
+        total_time = end_time - start_time
+        save_best_params(CHECK_HYPERBAND_PATH, model, best_params, total_time)
         print(f"----------BEST PARAMS----------\n{best_params.values}")
         
         
