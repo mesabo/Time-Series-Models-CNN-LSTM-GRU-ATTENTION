@@ -1,3 +1,5 @@
 ./input
 input
-./output/hyperband
+output/hyperband/*
+!output/hyperband/best_params.json
+

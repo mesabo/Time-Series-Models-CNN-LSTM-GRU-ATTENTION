@@ -72,6 +72,7 @@ def main():
     dataset_path = DATASET_PATH if DATASET_PATH else "../input/household_power_consumption.csv"
 
     # Define look back period and forecast period
+    # Given look_back days observations, forecast next forecast_period observations 
     look_back = 7
     forecast_period = 7
     num_features = 1  # Number of features being used
