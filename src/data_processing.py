@@ -33,14 +33,12 @@ def fill_missing_data(data, meth=2):
 
     return data
 
-
 def create_dataset(dataset, look_back, forecast_period):
     X, Y = [], []
     for i in range(len(dataset) - look_back - forecast_period + 1):
-        X.append(dataset[i : (i + look_back), :])
-        Y.append(dataset[(i + look_back) : (i + look_back + forecast_period), 0])
+        X.append(dataset[i:(i + look_back), :])  # Adjust for multiple features
+        Y.append(dataset[(i + look_back):(i + look_back + forecast_period), 0])  # Assuming first column is output feature
     return np.array(X), np.array(Y)
-
 
 def split_dataset(data_normalized, look_back, forecast_period):
     train_size = int(len(data_normalized) * 0.7)
@@ -48,7 +46,7 @@ def split_dataset(data_normalized, look_back, forecast_period):
     test_size = len(data_normalized) - train_size - val_size
 
     train = data_normalized[:train_size]
-    val = data_normalized[train_size : train_size + val_size]
+    val = data_normalized[train_size:train_size+val_size]
     test = data_normalized[-test_size:]
 
     trainX, trainY = create_dataset(train, look_back, forecast_period)
@@ -57,11 +55,8 @@ def split_dataset(data_normalized, look_back, forecast_period):
 
     return trainX, trainY, valX, valY, testX, testY
 
-
 def preprocess_and_split_dataset(url, look_back, forecast_period):
-    df = pd.read_csv(
-        url, sep=";", parse_dates={"datetime": ["Date", "Time"]}, na_values=["?"]
-    )
+    df = pd.read_csv(url, sep=';', parse_dates={'datetime': ['Date', 'Time']}, na_values=['?'])
     df = fill_missing_data(df, meth=2)
     selected_features = [
         "Global_active_power",
@@ -72,15 +67,12 @@ def preprocess_and_split_dataset(url, look_back, forecast_period):
         "Sub_metering_2",
         "Sub_metering_3",
     ]
-    # selected_features = ['Global_active_power']
 
-    data = df.set_index("datetime")[selected_features].resample("D").mean().dropna()
-
+    data = df.set_index('datetime')[selected_features].resample('D').mean().dropna()
+    
     scaler = MinMaxScaler(feature_range=(0, 1))
-    data_normalized = scaler.fit_transform(data.values.reshape(-1, 1))
+    data_normalized = scaler.fit_transform(data.values)
 
-    trainX, trainY, valX, valY, testX, testY = split_dataset(
-        data_normalized, look_back, forecast_period
-    )
+    trainX, trainY, valX, valY, testX, testY = split_dataset(data_normalized, look_back, forecast_period)
 
     return trainX, trainY, valX, valY, testX, testY, scaler

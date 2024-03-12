@@ -61,7 +61,7 @@ def run_model(input_shape, forecast_period, trainX, trainY, valX, valY, testX, t
     
     return model_lstm_based
     
-
+    
 def main():
     # Set random seed for TensorFlow
     tf.random.set_seed(SEEDER)
@@ -75,13 +75,14 @@ def main():
     # Given look_back days observations, forecast next forecast_period observations 
     look_back = 7
     forecast_period = 7
-    num_features = 1  # Number of features being used
+    num_features = 7  # Number of features being used
     input_shape = (look_back, num_features) 
 
     # Preprocess and split dataset
     trainX, trainY, valX, valY, testX, testY, scaler = preprocess_and_split_dataset(dataset_path, look_back, forecast_period)
     dataX = (trainX, trainY, valX, valY)
     
+    input_shape = trainX.shape[-2:]
     
     
     ##### HYPER PARAMETER TUNING  ALL THE MODELS

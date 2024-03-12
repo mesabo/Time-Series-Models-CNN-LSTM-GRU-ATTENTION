@@ -49,10 +49,29 @@ def train_model(model, trainX, trainY, valX, valY):
 def make_predictions(model, testX, testY, scaler):
     testPredict = model.predict(testX)
     
-    print(f"---------------------------------------------------------{np.array(testPredict).shape}")
-    #testPredict = scaler.inverse_transform(testPredict)
-    testPredict = np.array([scaler.inverse_transform(testPredict[:, i].reshape(-1, 1))[:, 0] for i in range(testPredict.shape[1])]).T
+    print(f"--------------------------------------------------testPredict-------{np.array(testPredict).shape}")
+    print(f"---------------------------------------------------testX------{testX.shape}")
+    print(f"------------------------------------------------------testY---{testY.shape}")
+    testPredict = scaler.inverse_transform(testPredict)
+    #testPredict = np.array([scaler.inverse_transform(testPredict[:, i].reshape(-1, 1))[:, 0] for i in range(testPredict.shape[1])]).T
+    #for i in range(testPredict.shape[1]):testPredict[:, i] = scaler.inverse_transform(testPredict[:, i].reshape(-1, 1)).flatten()
+    
     testOutput = scaler.inverse_transform(testY)
+    
+    '''
+    test_X = testX.reshape((testX.shape[0], 7))
+    print(test_X.shape)
+    print(testX[:, -6:].shape)
+    # invert scaling for forecast
+    inv_yhat = np.concatenate((testPredict, test_X[:, -6:]), axis=1)
+    inv_yhat = scaler.inverse_transform(inv_yhat)
+    inv_yhat = inv_yhat[:,0]
+    # invert scaling for actual
+    test_y = testY.reshape((len(testY), 1))
+    inv_y = np.concatenate((test_y, test_X[:, -6:]), axis=1)
+    inv_y = scaler.inverse_transform(inv_y)
+    inv_y = inv_y[:,0]
+    '''
     return testPredict, testOutput
 
 def custom_optimizer(train_size, optimizer_type='adam'):
