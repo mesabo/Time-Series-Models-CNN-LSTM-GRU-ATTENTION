@@ -85,6 +85,7 @@ def main():
     
     
     ##### HYPER PARAMETER TUNING  ALL THE MODELS
+    '''
     model_types = [
         LSTM_MODEL, GRU_MODEL , CNN_MODEL, BiLSTM_MODEL , BiGRU_MODEL,
         LSTM_ATTENTION_MODEL, GRU_ATTENTION_MODEL , CNN_ATTENTION_MODEL , 
@@ -106,13 +107,13 @@ def main():
         total_time = end_time - start_time
         save_best_params(CHECK_HYPERBAND_PATH, model, best_params, total_time)
         print(f"----------BEST PARAMS----------\n{best_params.values}")
-        
+    '''    
         
         
         
         
     ##### run one model at a time
-    #final_model = run_model(input_shape, forecast_period, trainX, trainY, valX, valY, testX,testY, scaler, CNN_MODEL)
+    final_model = run_model(input_shape, forecast_period, trainX, trainY, valX, valY, testX,testY, scaler, CNN_MODEL)
     #predictions = predict_next_x_days(final_model, testX[-14:])
     #print(predictions)
 
