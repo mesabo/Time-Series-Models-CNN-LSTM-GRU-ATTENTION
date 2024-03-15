@@ -7,7 +7,7 @@ Created on Tue Feb 20 18:35:52 2024
 """
 
 # Define model names as variables
-EPOCH = 5
+EPOCH = 100
 BATCH_SIZE = 64
 SEEDER = 42
 PARAMS_GRID = {
