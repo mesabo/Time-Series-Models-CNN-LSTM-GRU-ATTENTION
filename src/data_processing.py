@@ -11,6 +11,9 @@ Created on Tue Feb 20 17:50:00 2024
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+import json
+from constants import (DATASET_FEATURES_PATH, ELECTRICITY_DATASET_PATH,
+                       ELECTRICITY, WATER, WIND, GOLD)
 
 
 def fill_missing_data(data, meth=2):
@@ -32,6 +35,17 @@ def fill_missing_data(data, meth=2):
         data = data.dropna()
 
     return data
+
+
+def read_features(features_path, key_name):
+    with open(features_path, "r") as file:
+        data_features = json.load(file)
+
+    if key_name in data_features:
+        features = data_features[key_name]
+        return features
+    else:
+        raise KeyError(f"Key '{key_name}' not found in the JSON file.")
 
 
 def create_dataset(dataset, look_back, forecast_period):
@@ -59,24 +73,24 @@ def split_dataset(data_normalized, look_back, forecast_period):
     return trainX, trainY, valX, valY, testX, testY
 
 
-def preprocess_and_split_dataset(url, look_back, forecast_period):
-    df = pd.read_csv(url, sep=';', parse_dates={'datetime': ['Date', 'Time']}, na_values=['?'])
-    df = fill_missing_data(df, meth=2)
-    selected_features = [
-        "Global_active_power",
-        "Global_reactive_power",
-        "Voltage",
-        "Global_intensity",
-        "Sub_metering_1",
-        "Sub_metering_2",
-        "Sub_metering_3",
-    ]
+def load_dataset(dataset_type='ELECTRICITY', period='D'):
+    if dataset_type == ELECTRICITY:
+        dataset = pd.read_csv(ELECTRICITY_DATASET_PATH, sep=';', parse_dates={'datetime': ['Date', 'Time']},
+                              na_values=['?'])
+        df = fill_missing_data(dataset, meth=2)
+        selected_features = read_features(DATASET_FEATURES_PATH, dataset_type)
 
-    data = df.set_index('datetime')[selected_features].resample('D').mean().dropna()
+        data = df.set_index('datetime')[selected_features].resample(period).mean().dropna()
+        # Separate features and target variable
+        features = data.drop(columns=selected_features[0]).values
+        target = data[selected_features[0]].values.reshape(-1, 1)
+
+    return features, target
+
+
+def preprocess_and_split_dataset(url, period, look_back, forecast_period):
     # Separate features and target variable
-    #features = data.drop(columns=['Global_active_power']).values
-    features = data.drop(columns=['Global_active_power']).values
-    target = data['Global_active_power'].values.reshape(-1, 1)
+    features, target = load_dataset(url, period)
 
     # Normalize features
     scaler_features = MinMaxScaler(feature_range=(0, 1))

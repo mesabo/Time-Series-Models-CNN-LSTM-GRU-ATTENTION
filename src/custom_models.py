@@ -42,7 +42,7 @@ def train_model(model, trainX, trainY, valX, valY):
     callbacks = [
         EarlyStopping(monitor="val_loss", patience=8, restore_best_weights=True),
     ]
-    print(f"[---------------TRAINING MODEL ({model})---------------]\n")
+    print(f"[---------------TRAINING MODEL---------------]\n")
     history = model.fit(trainX, trainY, epochs=EPOCH, batch_size=BATCH_SIZE, validation_data=(valX, valY),
                         callbacks=callbacks)
     return history

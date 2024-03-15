@@ -9,18 +9,12 @@ Created on Tue Feb 20 18:35:52 2024
 # Define model names as variables
 EPOCH = 100
 BATCH_SIZE = 64
-SEEDER = 42
-PARAMS_GRID = {
-    'optimizer': ['adam', 'sgd', 'rmsprop'],
-    'num_layers': [1, 2],
-    'units': [100],
-    'dropout_rate': [0.2, 0.3],
-    'attention_units': [100],
-    'filters': [32, 64, 128],
-    'kernel_size': [3],
-    'activation': ['relu', 'tanh', 'sigmoid']
-}
-
+SEEDER = 2024
+PARAMS_GRID = {'batch_size': [16, 32, 64, 128, 256, 512]}
+ELECTRICITY = 'ELECTRICITY'
+WATER = 'WATER'
+WIND = 'WIND'
+GOLD = 'GOLD'
 # Simple models
 LSTM_MODEL = "LSTM-based"
 GRU_MODEL = "GRU-based"
@@ -67,7 +61,6 @@ CNN_ATTENTION_GRU_ATTENTION_MODEL = "CNN-Attention-GRU-Attention-based"
 CNN_ATTENTION_BiLSTM_ATTENTION_MODEL = "CNN-Attention-BiLSTM-Attention-based"
 CNN_ATTENTION_BiGRU_ATTENTION_MODEL = "CNN-Attention-BiGRU-Attention-based"
 
-
 # Define saving paths
 SAVING_MODEL_DIR = "../output/models/"
 SAVING_METRIC_DIR = "../output/metrics/"
@@ -77,9 +70,9 @@ SAVING_METRICS_PATH = "../output/metrics/evaluation_metrics.json"
 SAVING_LOSSES_PATH = "../output/losses/models_losses.json"
 
 # Define dataset paths
-DATASET_PATH = "../input/household_power_consumption.txt"  # Adjust as needed
+DATASET_FEATURES_PATH = "../input/data_features.json"
+ELECTRICITY_DATASET_PATH = "../input/household_power_consumption.txt"
 
 CHECK_PATH = "../output/checks/"
 CHECK_HYPERBAND = "../output/hyperband/"
 CHECK_HYPERBAND_PATH = "../output/hyperband/best_params.json"
-

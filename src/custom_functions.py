@@ -107,7 +107,6 @@ def plot_predictions(predicted, actual, model, save_path=None):
 
     plt.show()
 
-
 def save_evaluation_metrics(saving_path, model_type, mse, mae, rmse, mape):
     if os.path.exists(saving_path):
         with open(saving_path, 'r') as file:
