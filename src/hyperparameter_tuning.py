@@ -15,7 +15,7 @@ from keras.layers import (LSTM, Dense, Flatten, Conv1D, MaxPooling1D, GRU,
                           Permute, Dropout, BatchNormalization)
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 from keras.optimizers import Adam, SGD, RMSprop
-from keras.wrappers.scikit_learn import KerasClassifier, KerasRegressor
+from scikeras.wrappers import KerasClassifier, KerasRegressor
 from keras.regularizers import l1, l2, l1_l2
 
 from kerastuner import Hyperband
@@ -31,8 +31,8 @@ from constants import (
     CNN_LSTM_MODEL, CNN_GRU_MODEL, CNN_BiLSTM_MODEL, CNN_BiGRU_MODEL,
     CNN_LSTM_ATTENTION_MODEL, CNN_GRU_ATTENTION_MODEL,
     CNN_BiLSTM_ATTENTION_MODEL, CNN_BiGRU_ATTENTION_MODEL,
-    #CNN_LSTM_ATTENTION_LSTM_MODEL , CNN_GRU_ATTENTION_GRU_MODEL ,
-    #CNN_BiLSTM_ATTENTION_BiLSTM_MODEL , CNN_BiGRU_ATTENTION_BiGRU_MODEL ,
+    # CNN_LSTM_ATTENTION_LSTM_MODEL , CNN_GRU_ATTENTION_GRU_MODEL ,
+    # CNN_BiLSTM_ATTENTION_BiLSTM_MODEL , CNN_BiGRU_ATTENTION_BiGRU_MODEL ,
     CNN_ATTENTION_LSTM_ATTENTION_MODEL, CNN_ATTENTION_GRU_ATTENTION_MODEL,
     CNN_ATTENTION_BiLSTM_ATTENTION_MODEL, CNN_ATTENTION_BiGRU_ATTENTION_MODEL,
     CNN_ATTENTION_LSTM_MODEL, CNN_ATTENTION_GRU_MODEL,
@@ -174,7 +174,7 @@ def build_cnn_model(hp, input_shape, forecast_period):
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[1, 2, 3, 5])
 
         model.add(Conv1D(filters=filters, kernel_size=kernel_size,
-                  activation='relu', padding='same'))
+                         activation='relu', padding='same'))
         model.add(BatchNormalization())
 
         pool_size = ceil(model.layers[-1].output_shape[1] / 2)
@@ -553,12 +553,12 @@ def build_cnn_lstm_model(hp, input_shape, forecast_period):
 
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-                            32, 64, 128], default=hp_filters)
+            32, 64, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
-                                1, 2, 3, 5], default=hp_kernel_size)
+            1, 2, 3, 5], default=hp_kernel_size)
 
         model.add(Conv1D(filters=filters, kernel_size=kernel_size,
-                  activation='relu', padding='same'))
+                         activation='relu', padding='same'))
         model.add(BatchNormalization())
 
         pool_size = ceil(model.layers[-1].output_shape[1] / 2)
@@ -613,12 +613,12 @@ def build_cnn_gru_model(hp, input_shape, forecast_period):
 
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-                            32, 64, 128], default=hp_filters)
+            32, 64, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
-                                1, 2, 3, 5], default=hp_kernel_size)
+            1, 2, 3, 5], default=hp_kernel_size)
 
         model.add(Conv1D(filters=filters, kernel_size=kernel_size,
-                  activation='relu', padding='same'))
+                         activation='relu', padding='same'))
         model.add(BatchNormalization())
 
         pool_size = ceil(model.layers[-1].output_shape[1] / 2)
@@ -674,12 +674,12 @@ def build_cnn_bilstm_model(hp, input_shape, forecast_period):
 
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-                            32, 64, 128], default=hp_filters)
+            32, 64, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
-                                1, 2, 3, 5], default=hp_kernel_size)
+            1, 2, 3, 5], default=hp_kernel_size)
 
         model.add(Conv1D(filters=filters, kernel_size=kernel_size,
-                  activation='relu', padding='same'))
+                         activation='relu', padding='same'))
         model.add(BatchNormalization())
 
         pool_size = ceil(model.layers[-1].output_shape[1] / 2)
@@ -735,12 +735,12 @@ def build_cnn_bigru_model(hp, input_shape, forecast_period):
 
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-                            32, 64, 128], default=hp_filters)
+            32, 64, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
-                                1, 2, 3, 5], default=hp_kernel_size)
+            1, 2, 3, 5], default=hp_kernel_size)
 
         model.add(Conv1D(filters=filters, kernel_size=kernel_size,
-                  activation='relu', padding='same'))
+                         activation='relu', padding='same'))
         model.add(BatchNormalization())
 
         pool_size = ceil(model.layers[-1].output_shape[1] / 2)
@@ -801,9 +801,9 @@ def build_cnn_lstm_attention_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-                            32, 64, 128], default=hp_filters)
+            32, 64, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
-                                1, 2, 3, 5], default=hp_kernel_size)
+            1, 2, 3, 5], default=hp_kernel_size)
 
         cnn_layers.append(Conv1D(
             filters=filters, kernel_size=kernel_size, activation='relu', padding='same'))
@@ -876,9 +876,9 @@ def build_cnn_gru_attention_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-                            32, 64, 128], default=hp_filters)
+            32, 64, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
-                                1, 2, 3, 5], default=hp_kernel_size)
+            1, 2, 3, 5], default=hp_kernel_size)
 
         cnn_layers.append(Conv1D(
             filters=filters, kernel_size=kernel_size, activation='relu', padding='same'))
@@ -952,9 +952,9 @@ def build_cnn_bilstm_attention_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-                            32, 64, 128], default=hp_filters)
+            32, 64, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
-                                1, 2, 3, 5], default=hp_kernel_size)
+            1, 2, 3, 5], default=hp_kernel_size)
 
         cnn_layers.append(Conv1D(
             filters=filters, kernel_size=kernel_size, activation='relu', padding='same'))
@@ -1028,9 +1028,9 @@ def build_cnn_bigru_attention_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-                            32, 64, 128], default=hp_filters)
+            32, 64, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
-                                1, 2, 3, 5], default=hp_kernel_size)
+            1, 2, 3, 5], default=hp_kernel_size)
 
         cnn_layers.append(Conv1D(
             filters=filters, kernel_size=kernel_size, activation='relu', padding='same'))
@@ -1104,9 +1104,9 @@ def build_cnn_attention_lstm_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-                            32, 64, 128], default=hp_filters)
+            32, 64, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
-                                1, 2, 3, 5], default=hp_kernel_size)
+            1, 2, 3, 5], default=hp_kernel_size)
 
         cnn_layers.append(Conv1D(
             filters=filters, kernel_size=kernel_size, activation='relu', padding='same'))
@@ -1175,9 +1175,9 @@ def build_cnn_attention_gru_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-                            32, 64, 128], default=hp_filters)
+            32, 64, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
-                                1, 2, 3, 5], default=hp_kernel_size)
+            1, 2, 3, 5], default=hp_kernel_size)
 
         cnn_layers.append(Conv1D(
             filters=filters, kernel_size=kernel_size, activation='relu', padding='same'))
@@ -1247,9 +1247,9 @@ def build_cnn_attention_bilstm_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-                            32, 64, 128], default=hp_filters)
+            32, 64, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
-                                1, 2, 3, 5], default=hp_kernel_size)
+            1, 2, 3, 5], default=hp_kernel_size)
 
         cnn_layers.append(Conv1D(
             filters=filters, kernel_size=kernel_size, activation='relu', padding='same'))
@@ -1319,9 +1319,9 @@ def build_cnn_attention_bigru_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-                            32, 64, 128], default=hp_filters)
+            32, 64, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
-                                1, 2, 3, 5], default=hp_kernel_size)
+            1, 2, 3, 5], default=hp_kernel_size)
 
         cnn_layers.append(Conv1D(
             filters=filters, kernel_size=kernel_size, activation='relu', padding='same'))
@@ -1364,7 +1364,9 @@ def build_cnn_attention_bigru_model(hp, input_shape, forecast_period):
     return model
 
 
-'''-----------------------------Deep More Hybrid + Attention models-------------------------------'''    
+'''-----------------------------Deep More Hybrid + Attention models-------------------------------'''
+
+
 def build_cnn_attention_lstm_attention_model(hp, input_shape, forecast_period):
     hp_num_cnn_layers = hp.Int(
         'num_cnn_layers', min_value=1, max_value=3, step=1)
@@ -1391,9 +1393,9 @@ def build_cnn_attention_lstm_attention_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-                            32, 64, 128], default=hp_filters)
+            32, 64, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
-                                1, 2, 3, 5], default=hp_kernel_size)
+            1, 2, 3, 5], default=hp_kernel_size)
 
         cnn_layers.append(Conv1D(
             filters=filters, kernel_size=kernel_size, activation='relu', padding='same'))
@@ -1437,6 +1439,7 @@ def build_cnn_attention_lstm_attention_model(hp, input_shape, forecast_period):
     model.summary()
     return model
 
+
 def build_cnn_attention_gru_attention_model(hp, input_shape, forecast_period):
     hp_num_cnn_layers = hp.Int(
         'num_cnn_layers', min_value=1, max_value=3, step=1)
@@ -1463,9 +1466,9 @@ def build_cnn_attention_gru_attention_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-                            32, 64, 128], default=hp_filters)
+            32, 64, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
-                                1, 2, 3, 5], default=hp_kernel_size)
+            1, 2, 3, 5], default=hp_kernel_size)
 
         cnn_layers.append(Conv1D(
             filters=filters, kernel_size=kernel_size, activation='relu', padding='same'))
@@ -1509,6 +1512,7 @@ def build_cnn_attention_gru_attention_model(hp, input_shape, forecast_period):
     model.summary()
     return model
 
+
 def build_cnn_attention_bilstm_attention_model(hp, input_shape, forecast_period):
     hp_num_cnn_layers = hp.Int(
         'num_cnn_layers', min_value=1, max_value=3, step=1)
@@ -1537,9 +1541,9 @@ def build_cnn_attention_bilstm_attention_model(hp, input_shape, forecast_period)
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-                            32, 64, 128], default=hp_filters)
+            32, 64, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
-                                1, 2, 3, 5], default=hp_kernel_size)
+            1, 2, 3, 5], default=hp_kernel_size)
 
         cnn_layers.append(Conv1D(
             filters=filters, kernel_size=kernel_size, activation='relu', padding='same'))
@@ -1583,6 +1587,7 @@ def build_cnn_attention_bilstm_attention_model(hp, input_shape, forecast_period)
     model.summary()
     return model
 
+
 def build_cnn_attention_bigru_attention_model(hp, input_shape, forecast_period):
     hp_num_cnn_layers = hp.Int(
         'num_cnn_layers', min_value=1, max_value=3, step=1)
@@ -1611,9 +1616,9 @@ def build_cnn_attention_bigru_attention_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-                            32, 64, 128], default=hp_filters)
+            32, 64, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
-                                1, 2, 3, 5], default=hp_kernel_size)
+            1, 2, 3, 5], default=hp_kernel_size)
 
         cnn_layers.append(Conv1D(
             filters=filters, kernel_size=kernel_size, activation='relu', padding='same'))

@@ -33,12 +33,15 @@ def fill_missing_data(data, meth=2):
 
     return data
 
+
 def create_dataset(dataset, look_back, forecast_period):
     X, Y = [], []
     for i in range(len(dataset) - look_back - forecast_period + 1):
         X.append(dataset[i:(i + look_back), :])  # Adjust for multiple features
-        Y.append(dataset[(i + look_back):(i + look_back + forecast_period), 0])  # Assuming first column is output feature
+        Y.append(
+            dataset[(i + look_back):(i + look_back + forecast_period), 0])  # Assuming first column is output feature
     return np.array(X), np.array(Y)
+
 
 def split_dataset(data_normalized, look_back, forecast_period):
     train_size = int(len(data_normalized) * 0.7)
@@ -46,7 +49,7 @@ def split_dataset(data_normalized, look_back, forecast_period):
     test_size = len(data_normalized) - train_size - val_size
 
     train = data_normalized[:train_size]
-    val = data_normalized[train_size:train_size+val_size]
+    val = data_normalized[train_size:train_size + val_size]
     test = data_normalized[-test_size:]
 
     trainX, trainY = create_dataset(train, look_back, forecast_period)
@@ -54,6 +57,7 @@ def split_dataset(data_normalized, look_back, forecast_period):
     testX, testY = create_dataset(test, look_back, forecast_period)
 
     return trainX, trainY, valX, valY, testX, testY
+
 
 def preprocess_and_split_dataset(url, look_back, forecast_period):
     df = pd.read_csv(url, sep=';', parse_dates={'datetime': ['Date', 'Time']}, na_values=['?'])
@@ -69,10 +73,22 @@ def preprocess_and_split_dataset(url, look_back, forecast_period):
     ]
 
     data = df.set_index('datetime')[selected_features].resample('D').mean().dropna()
-    
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    data_normalized = scaler.fit_transform(data.values)
+    # Separate features and target variable
+    #features = data.drop(columns=['Global_active_power']).values
+    features = data.drop(columns=['Global_active_power']).values
+    target = data['Global_active_power'].values.reshape(-1, 1)
 
-    trainX, trainY, valX, valY, testX, testY = split_dataset(data_normalized, look_back, forecast_period)
+    # Normalize features
+    scaler_features = MinMaxScaler(feature_range=(0, 1))
+    scaled_features = scaler_features.fit_transform(features)
 
-    return trainX, trainY, valX, valY, testX, testY, scaler
+    # Normalize target variable
+    scaler_target = MinMaxScaler(feature_range=(0, 1))
+    scaled_target = scaler_target.fit_transform(target)
+
+    # Combine scaled features and target variable
+    scaled_dataset = np.concatenate((scaled_features, scaled_target), axis=1)
+
+    trainX, trainY, valX, valY, testX, testY = split_dataset(scaled_dataset, look_back, forecast_period)
+
+    return trainX, trainY, valX, valY, testX, testY, scaler_target

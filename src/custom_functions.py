@@ -14,6 +14,7 @@ import json
 import os
 from keras.models import save_model, load_model
 
+
 def format_duration(duration):
     if duration < 60:
         return f"{duration:.2f} s"
@@ -25,12 +26,14 @@ def format_duration(duration):
         return f"{duration / 86400:.2f} d"
     else:
         return f"{duration / 31536000:.2f} year"
-    
+
+
 def evaluate_model(testY, testPredict):
     mse = round(mean_squared_error(testY, testPredict), 6)
     mae = round(mean_absolute_error(testY, testPredict), 6)
     rmse = round(mean_squared_error(testY, testPredict, squared=False), 6)
-    mape = round(mean_absolute_percentage_error(testY, testPredict), 8) * 100
+    mape = mean_absolute_percentage_error(testY, testPredict) * 100
+    mape = round(mape, 6)
     print(f"[-----MODEL METRICS-----]\n")
     print(f"[-----MSE: {mse}-----]\n")
     print(f"[-----MAE: {mae}-----]\n")
@@ -45,36 +48,38 @@ def predict_next_x_days(model, X_new, days=7):
     # Iterate over the next days
     for i in range(days):
         prediction = model.predict(X_new)
-        
+
         predictions.append(prediction)
         # Update X_new for the next iteration
         # Shift the values by one day and append the new prediction
         X_new = np.roll(X_new, -1, axis=1)
-        X_new[-1] = prediction[0] 
+        X_new[-1] = prediction[0]
 
     predictions = np.array(predictions)
-    
+
     return predictions
 
+
 def plot_losses(history, model, save_path=None):
-        plt.plot(history.history['loss'], label='Training Loss')
-        plt.plot(history.history['val_loss'], label='Validation Loss')
-        plt.title(f'{model} - Model Loss')
-        plt.xlabel('Epoch')
-        plt.ylabel('Loss')
-        plt.legend()
-        
-        if save_path:
-            file_name = f'{model}_evaluation_metrics.png'
-            file_path = os.path.join(save_path, file_name)
-            plt.savefig(file_path)
-        
-        plt.show()
+    plt.plot(history.history['loss'], label='Training Loss')
+    plt.plot(history.history['val_loss'], label='Validation Loss')
+    plt.title(f'{model} - Model Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+
+    if save_path:
+        file_name = f'{model}_evaluation_metrics.png'
+        file_path = os.path.join(save_path, file_name)
+        plt.savefig(file_path)
+
+    plt.show()
+
 
 def plot_evaluation_metrics(mse, mae, rmse, mape, model, save_path=None):
     metrics = ['MSE', 'MAE', 'RMSE']
     values = [mse, mae, rmse]
-    
+
     plt.bar(metrics, values, color=['orange', 'limegreen', 'steelblue'])
     plt.title(f'{model} - Evaluation Metrics')
     plt.xlabel('Metric')
@@ -83,14 +88,15 @@ def plot_evaluation_metrics(mse, mae, rmse, mape, model, save_path=None):
         file_name = f'{model}_evaluation_metrics.png'
         file_path = os.path.join(save_path, file_name)
         plt.savefig(file_path)
-    
+
     plt.show()
-    
+
+
 def plot_predictions(predicted, actual, model, save_path=None):
     plt.figure(figsize=(10, 6))
-    plt.plot(actual[0], label='Actual')
-    plt.plot(predicted[0], label='Predicted')
-    plt.xlabel('Days')
+    plt.plot(actual[:, 0], label='Actual')
+    plt.plot(predicted[:, 0], label='Predicted')
+    plt.xlabel('Period')
     plt.ylabel('Global Active Power')
     plt.title(f'{model} - Actual vs Predicted')
     plt.legend()
@@ -98,7 +104,7 @@ def plot_predictions(predicted, actual, model, save_path=None):
         file_name = f'{model}_prediction.png'
         file_path = os.path.join(save_path, file_name)
         plt.savefig(file_path)
-        
+
     plt.show()
 
 
@@ -120,6 +126,7 @@ def save_evaluation_metrics(saving_path, model_type, mse, mae, rmse, mape):
     with open(saving_path, 'w') as file:
         json.dump(evaluation_data, file, indent=2)
 
+
 def save_loss_to_txt(saving_path, model_type, history):
     if os.path.exists(saving_path):
         with open(saving_path, 'r') as file:
@@ -134,6 +141,7 @@ def save_loss_to_txt(saving_path, model_type, history):
 
     with open(saving_path, 'w') as file:
         json.dump(loss_data, file, indent=2)
+
 
 def save_best_params(saving_path, model_type, best_hps, total_time):
     if os.path.exists(saving_path):
@@ -151,8 +159,10 @@ def save_best_params(saving_path, model_type, best_hps, total_time):
     with open(saving_path, 'w') as file:
         json.dump(evaluation_data, file, indent=2)
 
+
 def save_trained_model(model, path):
     save_model(model, path)
+
 
 def load_trained_model(path):
     loaded_model = load_model(path)
