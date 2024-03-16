@@ -64,22 +64,23 @@ def custom_optimizer(hp_learning_rate, decay_steps, hp_optimizer_choice):
 
 
 def build_lstm_model(hp, input_shape, forecast_period):
-    hp_units = hp.Int('units', min_value=50, max_value=300, step=50)
+    hp_units = hp.Int('units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     num_layers = hp.Int('num_layers', min_value=1, max_value=3, step=1)
     lstm_layers = []
 
     for i in range(num_layers):
         units = hp.Int(f'lstm_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_units)
+                       max_value=200, step=50, default=hp_units)
         dropout = hp.Float(
             f'dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
         return_sequences = i < num_layers - 1
@@ -97,7 +98,7 @@ def build_lstm_model(hp, input_shape, forecast_period):
     for layer in lstm_layers:
         model.add(layer)
 
-    model.add(Dense(units=forecast_period, activation='linear',
+    model.add(Dense(units=forecast_period, activation=hp_activation,
                     kernel_regularizer=l1(hp_l1_regularizer),
                     activity_regularizer=l2(hp_l2_regularizer)))
 
@@ -107,22 +108,23 @@ def build_lstm_model(hp, input_shape, forecast_period):
 
 
 def build_gru_model(hp, input_shape, forecast_period):
-    hp_units = hp.Int('units', min_value=50, max_value=300, step=50)
+    hp_units = hp.Int('units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     num_layers = hp.Int('num_layers', min_value=1, max_value=3, step=1)
     gru_layers = []
 
     for i in range(num_layers):
         units = hp.Int(f'gru_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_units)
+                       max_value=200, step=50, default=hp_units)
         dropout = hp.Float(
             f'dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
         return_sequences = i < num_layers - 1
@@ -140,7 +142,7 @@ def build_gru_model(hp, input_shape, forecast_period):
     for layer in gru_layers:
         model.add(layer)
 
-    model.add(Dense(units=forecast_period, activation='linear',
+    model.add(Dense(units=forecast_period, activation=hp_activation,
                     kernel_regularizer=l1(hp_l1_regularizer),
                     activity_regularizer=l2(hp_l2_regularizer)))
 
@@ -158,8 +160,9 @@ def build_cnn_model(hp, input_shape, forecast_period):
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
     hp_dropout_rate = hp.Float(
         'dropout_rate', min_value=0.1, max_value=0.5, step=0.1)
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -168,7 +171,7 @@ def build_cnn_model(hp, input_shape, forecast_period):
     model.add(Masking(mask_value=0., input_shape=input_shape))
 
     for i in range(hp_num_layers):
-        filters = hp.Choice(f'filters_{i}', values=[32, 64, 128])
+        filters = hp.Choice(f'filters_{i}', values=[32, 64, 96, 128])
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[1, 2, 3, 5])
 
         model.add(Conv1D(filters=filters, kernel_size=kernel_size,
@@ -186,7 +189,7 @@ def build_cnn_model(hp, input_shape, forecast_period):
     model.add(Flatten())
     model.add(Dense(32, activation='relu', kernel_regularizer=l1(hp_l1_regularizer),
                     activity_regularizer=l2(hp_l2_regularizer)))
-    model.add(Dense(forecast_period, activation='linear'))
+    model.add(Dense(forecast_period, activation=hp_activation))
     model.compile(loss='mean_absolute_error', optimizer=optimizer)
     model.summary()
     return model
@@ -196,22 +199,23 @@ def build_cnn_model(hp, input_shape, forecast_period):
 
 
 def build_bilstm_model(hp, input_shape, forecast_period):
-    hp_units = hp.Int('units', min_value=50, max_value=300, step=50)
+    hp_units = hp.Int('units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     num_layers = hp.Int('num_layers', min_value=1, max_value=3, step=1)
     lstm_layers = []
 
     for i in range(num_layers):
         units = hp.Int(f'bilstm_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_units)
+                       max_value=200, step=50, default=hp_units)
         dropout = hp.Float(
             f'dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
         return_sequences = i < num_layers - 1
@@ -229,7 +233,7 @@ def build_bilstm_model(hp, input_shape, forecast_period):
     for layer in lstm_layers:
         model.add(layer)
 
-    model.add(Dense(units=forecast_period, activation='linear',
+    model.add(Dense(units=forecast_period, activation=hp_activation,
                     kernel_regularizer=l1(hp_l1_regularizer),
                     activity_regularizer=l2(hp_l2_regularizer)))
 
@@ -239,22 +243,23 @@ def build_bilstm_model(hp, input_shape, forecast_period):
 
 
 def build_bigru_model(hp, input_shape, forecast_period):
-    hp_units = hp.Int('units', min_value=50, max_value=300, step=50)
+    hp_units = hp.Int('units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     num_layers = hp.Int('num_layers', min_value=1, max_value=3, step=1)
     bigru_layers = []
 
     for i in range(num_layers):
         units = hp.Int(f'bigru_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_units)
+                       max_value=200, step=50, default=hp_units)
         dropout = hp.Float(
             f'dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
         return_sequences = i < num_layers - 1
@@ -272,7 +277,7 @@ def build_bigru_model(hp, input_shape, forecast_period):
     for layer in bigru_layers:
         model.add(layer)
 
-    model.add(Dense(units=forecast_period, activation='linear',
+    model.add(Dense(units=forecast_period, activation=hp_activation,
                     kernel_regularizer=l1(hp_l1_regularizer),
                     activity_regularizer=l2(hp_l2_regularizer)))
 
@@ -286,15 +291,16 @@ def build_bigru_model(hp, input_shape, forecast_period):
 
 def build_lstm_attention_model(hp, input_shape, forecast_period):
     num_layers = hp.Int('num_layers', min_value=1, max_value=3, step=1)
-    hp_units = hp.Int('units', min_value=50, max_value=300, step=50)
+    hp_units = hp.Int('units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -305,7 +311,7 @@ def build_lstm_attention_model(hp, input_shape, forecast_period):
     lstm_layers = []
     for i in range(num_layers):
         units = hp.Int(f'lstm_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_units)
+                       max_value=200, step=50, default=hp_units)
         dropout = hp.Float(
             f'dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
 
@@ -322,7 +328,7 @@ def build_lstm_attention_model(hp, input_shape, forecast_period):
     context = dot([attention, lstm_output], axes=[2, 1])
     flattened = Flatten()(context)
 
-    output = Dense(forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer))(flattened)
 
     model = Model(inputs=inputs, outputs=output)
@@ -333,15 +339,16 @@ def build_lstm_attention_model(hp, input_shape, forecast_period):
 
 def build_gru_attention_model(hp, input_shape, forecast_period):
     num_layers = hp.Int('num_layers', min_value=1, max_value=3, step=1)
-    hp_units = hp.Int('units', min_value=50, max_value=300, step=50)
+    hp_units = hp.Int('units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -352,7 +359,7 @@ def build_gru_attention_model(hp, input_shape, forecast_period):
     gru_layers = []
     for i in range(num_layers):
         units = hp.Int(f'gru_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_units)
+                       max_value=200, step=50, default=hp_units)
         dropout = hp.Float(
             f'dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
 
@@ -369,7 +376,7 @@ def build_gru_attention_model(hp, input_shape, forecast_period):
     context = dot([attention, gru_output], axes=[2, 1])
     flattened = Flatten()(context)
 
-    output = Dense(forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer))(flattened)
 
     model = Model(inputs=inputs, outputs=output)
@@ -385,8 +392,9 @@ def build_cnn_attention_model(hp, input_shape, forecast_period):
                          max_value=25000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
     hp_dropout_rate = hp.Float(
         'dropout_rate', min_value=0.1, max_value=0.5, step=0.1)
 
@@ -397,7 +405,7 @@ def build_cnn_attention_model(hp, input_shape, forecast_period):
     x = inputs
 
     for i in range(hp_num_layers):
-        filters = hp.Choice(f'filters_{i}', values=[32, 64, 128])
+        filters = hp.Choice(f'filters_{i}', values=[32, 64, 96, 128])
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[1, 2, 3, 5])
 
         x = Conv1D(filters=filters, kernel_size=kernel_size,
@@ -417,7 +425,7 @@ def build_cnn_attention_model(hp, input_shape, forecast_period):
     context = Concatenate(axis=-1)([x, attention])
 
     flattened = Flatten()(context)
-    output = Dense(forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer))(flattened)
 
     model = Model(inputs=inputs, outputs=output)
@@ -431,15 +439,16 @@ def build_cnn_attention_model(hp, input_shape, forecast_period):
 
 def build_bilstm_attention_model(hp, input_shape, forecast_period):
     num_layers = hp.Int('num_layers', min_value=1, max_value=3, step=1)
-    hp_units = hp.Int('units', min_value=50, max_value=300, step=50)
+    hp_units = hp.Int('units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -450,7 +459,7 @@ def build_bilstm_attention_model(hp, input_shape, forecast_period):
     bilstm_layers = []
     for i in range(num_layers):
         units = hp.Int(f'bilstm_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_units)
+                       max_value=200, step=50, default=hp_units)
         dropout = hp.Float(
             f'dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
 
@@ -467,7 +476,7 @@ def build_bilstm_attention_model(hp, input_shape, forecast_period):
     context = dot([attention, bilstm_output], axes=[2, 1])
     flattened = Flatten()(context)
 
-    output = Dense(forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer))(flattened)
 
     model = Model(inputs=inputs, outputs=output)
@@ -478,15 +487,16 @@ def build_bilstm_attention_model(hp, input_shape, forecast_period):
 
 def build_bigru_attention_model(hp, input_shape, forecast_period):
     num_layers = hp.Int('num_layers', min_value=1, max_value=3, step=1)
-    hp_units = hp.Int('units', min_value=50, max_value=300, step=50)
+    hp_units = hp.Int('units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -497,7 +507,7 @@ def build_bigru_attention_model(hp, input_shape, forecast_period):
     bigru_layers = []
     for i in range(num_layers):
         units = hp.Int(f'bigru_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_units)
+                       max_value=200, step=50, default=hp_units)
         dropout = hp.Float(
             f'dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
 
@@ -514,7 +524,7 @@ def build_bigru_attention_model(hp, input_shape, forecast_period):
     context = dot([attention, bigru_output], axes=[2, 1])
     flattened = Flatten()(context)
 
-    output = Dense(forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer))(flattened)
 
     model = Model(inputs=inputs, outputs=output)
@@ -531,17 +541,18 @@ def build_cnn_lstm_model(hp, input_shape, forecast_period):
         'num_cnn_layers', min_value=1, max_value=3, step=1)
     hp_num_lstm_layers = hp.Int(
         'num_lstm_layers', min_value=1, max_value=3, step=1)
-    hp_filters = hp.Choice('filters', values=[32, 64, 128])
+    hp_filters = hp.Choice('filters', values=[32, 64, 96, 128])
     hp_kernel_size = hp.Choice('kernel_size', values=[1, 2, 3, 5])
-    hp_lstm_units = hp.Int('lstm_units', min_value=50, max_value=300, step=50)
+    hp_lstm_units = hp.Int('lstm_units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -551,7 +562,7 @@ def build_cnn_lstm_model(hp, input_shape, forecast_period):
 
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-            32, 64, 128], default=hp_filters)
+            32, 64, 96, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
             1, 2, 3, 5], default=hp_kernel_size)
 
@@ -569,7 +580,7 @@ def build_cnn_lstm_model(hp, input_shape, forecast_period):
 
     for i in range(hp_num_lstm_layers):
         units = hp.Int(f'lstm_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_lstm_units)
+                       max_value=200, step=50, default=hp_lstm_units)
         dropout = hp.Float(
             f'lstm_dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
         return_sequences = i < hp_num_lstm_layers - 1
@@ -578,7 +589,7 @@ def build_cnn_lstm_model(hp, input_shape, forecast_period):
             LSTM(units=units, return_sequences=return_sequences, activation='relu'))
         model.add(Dropout(rate=dropout))
 
-    model.add(Dense(units=forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    model.add(Dense(units=forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer)))
     model.compile(loss='mean_squared_error', optimizer=optimizer)
 
@@ -591,17 +602,18 @@ def build_cnn_gru_model(hp, input_shape, forecast_period):
         'num_cnn_layers', min_value=1, max_value=3, step=1)
     hp_num_gru_layers = hp.Int(
         'num_gru_layers', min_value=1, max_value=3, step=1)
-    hp_filters = hp.Choice('filters', values=[32, 64, 128])
+    hp_filters = hp.Choice('filters', values=[32, 64, 96, 128])
     hp_kernel_size = hp.Choice('kernel_size', values=[1, 2, 3, 5])
-    hp_gru_units = hp.Int('gru_units', min_value=50, max_value=300, step=50)
+    hp_gru_units = hp.Int('gru_units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -611,7 +623,7 @@ def build_cnn_gru_model(hp, input_shape, forecast_period):
 
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-            32, 64, 128], default=hp_filters)
+            32, 64, 96, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
             1, 2, 3, 5], default=hp_kernel_size)
 
@@ -629,7 +641,7 @@ def build_cnn_gru_model(hp, input_shape, forecast_period):
 
     for i in range(hp_num_gru_layers):
         units = hp.Int(f'gru_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_gru_units)
+                       max_value=200, step=50, default=hp_gru_units)
         dropout = hp.Float(
             f'gru_dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
         return_sequences = i < hp_num_gru_layers - 1
@@ -638,7 +650,7 @@ def build_cnn_gru_model(hp, input_shape, forecast_period):
             GRU(units=units, return_sequences=return_sequences, activation='relu'))
         model.add(Dropout(rate=dropout))
 
-    model.add(Dense(units=forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    model.add(Dense(units=forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer)))
     model.compile(loss='mean_squared_error', optimizer=optimizer)
 
@@ -651,18 +663,19 @@ def build_cnn_bilstm_model(hp, input_shape, forecast_period):
         'num_cnn_layers', min_value=1, max_value=3, step=1)
     hp_num_bilstm_layers = hp.Int(
         'num_bilstm_layers', min_value=1, max_value=3, step=1)
-    hp_filters = hp.Choice('filters', values=[32, 64, 128])
+    hp_filters = hp.Choice('filters', values=[32, 64, 96, 128])
     hp_kernel_size = hp.Choice('kernel_size', values=[1, 2, 3, 5])
     hp_bilstm_units = hp.Int(
-        'bilstm_units', min_value=50, max_value=300, step=50)
+        'bilstm_units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -672,7 +685,7 @@ def build_cnn_bilstm_model(hp, input_shape, forecast_period):
 
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-            32, 64, 128], default=hp_filters)
+            32, 64, 96, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
             1, 2, 3, 5], default=hp_kernel_size)
 
@@ -690,7 +703,7 @@ def build_cnn_bilstm_model(hp, input_shape, forecast_period):
 
     for i in range(hp_num_bilstm_layers):
         units = hp.Int(f'bilstm_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_bilstm_units)
+                       max_value=200, step=50, default=hp_bilstm_units)
         dropout = hp.Float(
             f'bilstm_dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
         return_sequences = i < hp_num_bilstm_layers - 1
@@ -699,7 +712,7 @@ def build_cnn_bilstm_model(hp, input_shape, forecast_period):
             LSTM(units=units, return_sequences=return_sequences, activation='relu')))
         model.add(Dropout(rate=dropout))
 
-    model.add(Dense(units=forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    model.add(Dense(units=forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer)))
     model.compile(loss='mean_squared_error', optimizer=optimizer)
 
@@ -712,18 +725,19 @@ def build_cnn_bigru_model(hp, input_shape, forecast_period):
         'num_cnn_layers', min_value=1, max_value=3, step=1)
     hp_num_bigru_layers = hp.Int(
         'num_bigru_layers', min_value=1, max_value=3, step=1)
-    hp_filters = hp.Choice('filters', values=[32, 64, 128])
+    hp_filters = hp.Choice('filters', values=[32, 64, 96, 128])
     hp_kernel_size = hp.Choice('kernel_size', values=[1, 2, 3, 5])
     hp_bigru_units = hp.Int('bigru_units', min_value=50,
-                            max_value=300, step=50)
+                            max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -733,7 +747,7 @@ def build_cnn_bigru_model(hp, input_shape, forecast_period):
 
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-            32, 64, 128], default=hp_filters)
+            32, 64, 96, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
             1, 2, 3, 5], default=hp_kernel_size)
 
@@ -751,7 +765,7 @@ def build_cnn_bigru_model(hp, input_shape, forecast_period):
 
     for i in range(hp_num_bigru_layers):
         units = hp.Int(f'bigru_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_bigru_units)
+                       max_value=200, step=50, default=hp_bigru_units)
         dropout = hp.Float(
             f'bigru_dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
         return_sequences = i < hp_num_bigru_layers - 1
@@ -760,7 +774,7 @@ def build_cnn_bigru_model(hp, input_shape, forecast_period):
             Bidirectional(GRU(units=units, return_sequences=return_sequences, activation='relu')))
         model.add(Dropout(rate=dropout))
 
-    model.add(Dense(units=forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    model.add(Dense(units=forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer)))
     model.compile(loss='mean_squared_error', optimizer=optimizer)
 
@@ -776,17 +790,18 @@ def build_cnn_lstm_attention_model(hp, input_shape, forecast_period):
         'num_cnn_layers', min_value=1, max_value=3, step=1)
     hp_num_lstm_layers = hp.Int(
         'num_lstm_layers', min_value=1, max_value=3, step=1)
-    hp_filters = hp.Choice('filters', values=[32, 64, 128])
+    hp_filters = hp.Choice('filters', values=[32, 64, 96, 128])
     hp_kernel_size = hp.Choice('kernel_size', values=[1, 2, 3, 5])
-    hp_lstm_units = hp.Int('lstm_units', min_value=50, max_value=300, step=50)
+    hp_lstm_units = hp.Int('lstm_units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -799,7 +814,7 @@ def build_cnn_lstm_attention_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-            32, 64, 128], default=hp_filters)
+            32, 64, 96, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
             1, 2, 3, 5], default=hp_kernel_size)
 
@@ -820,7 +835,7 @@ def build_cnn_lstm_attention_model(hp, input_shape, forecast_period):
     lstm_layers = []
     for i in range(hp_num_lstm_layers):
         units = hp.Int(f'lstm_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_lstm_units)
+                       max_value=200, step=50, default=hp_lstm_units)
         dropout = hp.Float(
             f'lstm_dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
 
@@ -836,7 +851,7 @@ def build_cnn_lstm_attention_model(hp, input_shape, forecast_period):
     attention = Dense(lookback, activation='relu')(attention)
     context = Concatenate(axis=-1)([cnn_output, lstm_output])
     flattened = Flatten()(context)
-    output = Dense(forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer))(flattened)
 
     model = Model(inputs=inputs, outputs=output)
@@ -851,17 +866,18 @@ def build_cnn_gru_attention_model(hp, input_shape, forecast_period):
         'num_cnn_layers', min_value=1, max_value=3, step=1)
     hp_num_gru_layers = hp.Int(
         'num_gru_layers', min_value=1, max_value=3, step=1)
-    hp_filters = hp.Choice('filters', values=[32, 64, 128])
+    hp_filters = hp.Choice('filters', values=[32, 64, 96, 128])
     hp_kernel_size = hp.Choice('kernel_size', values=[1, 2, 3, 5])
-    hp_gru_units = hp.Int('gru_units', min_value=50, max_value=300, step=50)
+    hp_gru_units = hp.Int('gru_units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -874,7 +890,7 @@ def build_cnn_gru_attention_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-            32, 64, 128], default=hp_filters)
+            32, 64, 96, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
             1, 2, 3, 5], default=hp_kernel_size)
 
@@ -895,7 +911,7 @@ def build_cnn_gru_attention_model(hp, input_shape, forecast_period):
     gru_layers = []
     for i in range(hp_num_gru_layers):
         units = hp.Int(f'gru_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_gru_units)
+                       max_value=200, step=50, default=hp_gru_units)
         dropout = hp.Float(
             f'gru_dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
 
@@ -911,7 +927,7 @@ def build_cnn_gru_attention_model(hp, input_shape, forecast_period):
     attention = Dense(lookback, activation='relu')(attention)
     context = Concatenate(axis=-1)([cnn_output, gru_output])
     flattened = Flatten()(context)
-    output = Dense(forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer))(flattened)
 
     model = Model(inputs=inputs, outputs=output)
@@ -926,18 +942,19 @@ def build_cnn_bilstm_attention_model(hp, input_shape, forecast_period):
         'num_cnn_layers', min_value=1, max_value=3, step=1)
     hp_num_bilstm_layers = hp.Int(
         'num_bilstm_layers', min_value=1, max_value=3, step=1)
-    hp_filters = hp.Choice('filters', values=[32, 64, 128])
+    hp_filters = hp.Choice('filters', values=[32, 64, 96, 128])
     hp_kernel_size = hp.Choice('kernel_size', values=[1, 2, 3, 5])
     hp_bilstm_units = hp.Int(
-        'bilstm_units', min_value=50, max_value=300, step=50)
+        'bilstm_units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -950,7 +967,7 @@ def build_cnn_bilstm_attention_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-            32, 64, 128], default=hp_filters)
+            32, 64, 96, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
             1, 2, 3, 5], default=hp_kernel_size)
 
@@ -971,7 +988,7 @@ def build_cnn_bilstm_attention_model(hp, input_shape, forecast_period):
     bilstm_layers = []
     for i in range(hp_num_bilstm_layers):
         units = hp.Int(f'bilstm_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_bilstm_units)
+                       max_value=200, step=50, default=hp_bilstm_units)
         dropout = hp.Float(
             f'bilstm_dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
 
@@ -987,7 +1004,7 @@ def build_cnn_bilstm_attention_model(hp, input_shape, forecast_period):
     attention = Dense(lookback, activation='relu')(attention)
     context = Concatenate(axis=-1)([cnn_output, bilstm_output])
     flattened = Flatten()(context)
-    output = Dense(forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer))(flattened)
 
     model = Model(inputs=inputs, outputs=output)
@@ -1002,18 +1019,19 @@ def build_cnn_bigru_attention_model(hp, input_shape, forecast_period):
         'num_cnn_layers', min_value=1, max_value=3, step=1)
     hp_num_bigru_layers = hp.Int(
         'num_bigru_layers', min_value=1, max_value=3, step=1)
-    hp_filters = hp.Choice('filters', values=[32, 64, 128])
+    hp_filters = hp.Choice('filters', values=[32, 64, 96, 128])
     hp_kernel_size = hp.Choice('kernel_size', values=[1, 2, 3, 5])
     hp_bigru_units = hp.Int('bigru_units', min_value=50,
-                            max_value=300, step=50)
+                            max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -1026,7 +1044,7 @@ def build_cnn_bigru_attention_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-            32, 64, 128], default=hp_filters)
+            32, 64, 96, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
             1, 2, 3, 5], default=hp_kernel_size)
 
@@ -1047,7 +1065,7 @@ def build_cnn_bigru_attention_model(hp, input_shape, forecast_period):
     bigru_layers = []
     for i in range(hp_num_bigru_layers):
         units = hp.Int(f'bigru_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_bigru_units)
+                       max_value=200, step=50, default=hp_bigru_units)
         dropout = hp.Float(
             f'bigru_dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
 
@@ -1063,7 +1081,7 @@ def build_cnn_bigru_attention_model(hp, input_shape, forecast_period):
     attention = Dense(lookback, activation='relu')(attention)
     context = Concatenate(axis=-1)([cnn_output, bigru_output])
     flattened = Flatten()(context)
-    output = Dense(forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer))(flattened)
 
     model = Model(inputs=inputs, outputs=output)
@@ -1081,17 +1099,18 @@ def build_cnn_attention_lstm_model(hp, input_shape, forecast_period):
         'num_cnn_layers', min_value=1, max_value=3, step=1)
     hp_num_lstm_layers = hp.Int(
         'num_lstm_layers', min_value=1, max_value=3, step=1)
-    hp_filters = hp.Choice('filters', values=[32, 64, 128])
+    hp_filters = hp.Choice('filters', values=[32, 64, 96, 128])
     hp_kernel_size = hp.Choice('kernel_size', values=[1, 2, 3, 5])
-    hp_lstm_units = hp.Int('lstm_units', min_value=50, max_value=300, step=50)
+    hp_lstm_units = hp.Int('lstm_units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -1102,7 +1121,7 @@ def build_cnn_attention_lstm_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-            32, 64, 128], default=hp_filters)
+            32, 64, 96, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
             1, 2, 3, 5], default=hp_kernel_size)
 
@@ -1125,7 +1144,7 @@ def build_cnn_attention_lstm_model(hp, input_shape, forecast_period):
     lstm_layers = []
     for i in range(hp_num_lstm_layers):
         units = hp.Int(f'lstm_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_lstm_units)
+                       max_value=200, step=50, default=hp_lstm_units)
         dropout = hp.Float(
             f'lstm_dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
 
@@ -1137,7 +1156,7 @@ def build_cnn_attention_lstm_model(hp, input_shape, forecast_period):
     for layer in lstm_layers:
         lstm_output = layer(lstm_output)
 
-    output = Dense(forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer))(lstm_output)
 
     model = Model(inputs=inputs, outputs=output)
@@ -1152,17 +1171,18 @@ def build_cnn_attention_gru_model(hp, input_shape, forecast_period):
         'num_cnn_layers', min_value=1, max_value=3, step=1)
     hp_num_gru_layers = hp.Int(
         'num_gru_layers', min_value=1, max_value=3, step=1)
-    hp_filters = hp.Choice('filters', values=[32, 64, 128])
+    hp_filters = hp.Choice('filters', values=[32, 64, 96, 128])
     hp_kernel_size = hp.Choice('kernel_size', values=[1, 2, 3, 5])
-    hp_gru_units = hp.Int('gru_units', min_value=50, max_value=300, step=50)
+    hp_gru_units = hp.Int('gru_units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -1173,7 +1193,7 @@ def build_cnn_attention_gru_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-            32, 64, 128], default=hp_filters)
+            32, 64, 96, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
             1, 2, 3, 5], default=hp_kernel_size)
 
@@ -1196,7 +1216,7 @@ def build_cnn_attention_gru_model(hp, input_shape, forecast_period):
     gru_layers = []
     for i in range(hp_num_gru_layers):
         units = hp.Int(f'gru_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_gru_units)
+                       max_value=200, step=50, default=hp_gru_units)
         dropout = hp.Float(
             f'gru_dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
 
@@ -1208,7 +1228,7 @@ def build_cnn_attention_gru_model(hp, input_shape, forecast_period):
     for layer in gru_layers:
         gru_output = layer(gru_output)
 
-    output = Dense(forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer))(gru_output)
 
     model = Model(inputs=inputs, outputs=output)
@@ -1223,18 +1243,19 @@ def build_cnn_attention_bilstm_model(hp, input_shape, forecast_period):
         'num_cnn_layers', min_value=1, max_value=3, step=1)
     hp_num_bilstm_layers = hp.Int(
         'num_bilstm_layers', min_value=1, max_value=3, step=1)
-    hp_filters = hp.Choice('filters', values=[32, 64, 128])
+    hp_filters = hp.Choice('filters', values=[32, 64, 96, 128])
     hp_kernel_size = hp.Choice('kernel_size', values=[1, 2, 3, 5])
     hp_bilstm_units = hp.Int(
-        'bilstm_units', min_value=50, max_value=300, step=50)
+        'bilstm_units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -1245,7 +1266,7 @@ def build_cnn_attention_bilstm_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-            32, 64, 128], default=hp_filters)
+            32, 64, 96, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
             1, 2, 3, 5], default=hp_kernel_size)
 
@@ -1268,7 +1289,7 @@ def build_cnn_attention_bilstm_model(hp, input_shape, forecast_period):
     bilstm_layers = []
     for i in range(hp_num_bilstm_layers):
         units = hp.Int(f'bilstm_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_bilstm_units)
+                       max_value=200, step=50, default=hp_bilstm_units)
         dropout = hp.Float(
             f'bilstm_dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
 
@@ -1280,7 +1301,7 @@ def build_cnn_attention_bilstm_model(hp, input_shape, forecast_period):
     for layer in bilstm_layers:
         bilstm_output = layer(bilstm_output)
 
-    output = Dense(forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer))(bilstm_output)
 
     model = Model(inputs=inputs, outputs=output)
@@ -1295,18 +1316,19 @@ def build_cnn_attention_bigru_model(hp, input_shape, forecast_period):
         'num_cnn_layers', min_value=1, max_value=3, step=1)
     hp_num_bigru_layers = hp.Int(
         'num_bigru_layers', min_value=1, max_value=3, step=1)
-    hp_filters = hp.Choice('filters', values=[32, 64, 128])
+    hp_filters = hp.Choice('filters', values=[32, 64, 96, 128])
     hp_kernel_size = hp.Choice('kernel_size', values=[1, 2, 3, 5])
     hp_bigru_units = hp.Int('bigru_units', min_value=50,
-                            max_value=300, step=50)
+                            max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -1317,7 +1339,7 @@ def build_cnn_attention_bigru_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-            32, 64, 128], default=hp_filters)
+            32, 64, 96, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
             1, 2, 3, 5], default=hp_kernel_size)
 
@@ -1340,7 +1362,7 @@ def build_cnn_attention_bigru_model(hp, input_shape, forecast_period):
     bigru_layers = []
     for i in range(hp_num_bigru_layers):
         units = hp.Int(f'bigru_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_bigru_units)
+                       max_value=200, step=50, default=hp_bigru_units)
         dropout = hp.Float(
             f'bigru_dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
 
@@ -1352,7 +1374,7 @@ def build_cnn_attention_bigru_model(hp, input_shape, forecast_period):
     for layer in bigru_layers:
         bigru_output = layer(bigru_output)
 
-    output = Dense(forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer))(bigru_output)
 
     model = Model(inputs=inputs, outputs=output)
@@ -1370,17 +1392,18 @@ def build_cnn_attention_lstm_attention_model(hp, input_shape, forecast_period):
         'num_cnn_layers', min_value=1, max_value=3, step=1)
     hp_num_lstm_layers = hp.Int(
         'num_lstm_layers', min_value=1, max_value=3, step=1)
-    hp_filters = hp.Choice('filters', values=[32, 64, 128])
+    hp_filters = hp.Choice('filters', values=[32, 64, 96, 128])
     hp_kernel_size = hp.Choice('kernel_size', values=[1, 2, 3, 5])
-    hp_lstm_units = hp.Int('lstm_units', min_value=50, max_value=300, step=50)
+    hp_lstm_units = hp.Int('lstm_units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -1391,7 +1414,7 @@ def build_cnn_attention_lstm_attention_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-            32, 64, 128], default=hp_filters)
+            32, 64, 96, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
             1, 2, 3, 5], default=hp_kernel_size)
 
@@ -1414,7 +1437,7 @@ def build_cnn_attention_lstm_attention_model(hp, input_shape, forecast_period):
     lstm_layers = []
     for i in range(hp_num_lstm_layers):
         units = hp.Int(f'lstm_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_lstm_units)
+                       max_value=200, step=50, default=hp_lstm_units)
         dropout = hp.Float(
             f'lstm_dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
 
@@ -1428,7 +1451,7 @@ def build_cnn_attention_lstm_attention_model(hp, input_shape, forecast_period):
 
     attention2 = Attention()([lstm_output, lstm_output])
 
-    output = Dense(forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer))(attention2)
 
     model = Model(inputs=inputs, outputs=output)
@@ -1443,17 +1466,18 @@ def build_cnn_attention_gru_attention_model(hp, input_shape, forecast_period):
         'num_cnn_layers', min_value=1, max_value=3, step=1)
     hp_num_gru_layers = hp.Int(
         'num_gru_layers', min_value=1, max_value=3, step=1)
-    hp_filters = hp.Choice('filters', values=[32, 64, 128])
+    hp_filters = hp.Choice('filters', values=[32, 64, 96, 128])
     hp_kernel_size = hp.Choice('kernel_size', values=[1, 2, 3, 5])
-    hp_gru_units = hp.Int('gru_units', min_value=50, max_value=300, step=50)
+    hp_gru_units = hp.Int('gru_units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -1464,7 +1488,7 @@ def build_cnn_attention_gru_attention_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-            32, 64, 128], default=hp_filters)
+            32, 64, 96, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
             1, 2, 3, 5], default=hp_kernel_size)
 
@@ -1487,7 +1511,7 @@ def build_cnn_attention_gru_attention_model(hp, input_shape, forecast_period):
     gru_layers = []
     for i in range(hp_num_gru_layers):
         units = hp.Int(f'gru_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_gru_units)
+                       max_value=200, step=50, default=hp_gru_units)
         dropout = hp.Float(
             f'gru_dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
 
@@ -1501,7 +1525,7 @@ def build_cnn_attention_gru_attention_model(hp, input_shape, forecast_period):
 
     attention2 = Attention()([gru_output, gru_output])
 
-    output = Dense(forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer))(attention2)
 
     model = Model(inputs=inputs, outputs=output)
@@ -1516,17 +1540,18 @@ def build_cnn_attention_bilstm_attention_model(hp, input_shape, forecast_period)
         'num_cnn_layers', min_value=1, max_value=3, step=1)
     hp_num_bilstm_layers = hp.Int(
         'num_bilstm_layers', min_value=1, max_value=3, step=1)
-    hp_filters = hp.Choice('filters', values=[32, 64, 128])
+    hp_filters = hp.Choice('filters', values=[32, 64, 96, 128])
     hp_kernel_size = hp.Choice('kernel_size', values=[1, 2, 3, 5])
-    hp_bilstm_units = hp.Int('bilstm_units', min_value=50, max_value=300, step=50)
+    hp_bilstm_units = hp.Int('bilstm_units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -1539,7 +1564,7 @@ def build_cnn_attention_bilstm_attention_model(hp, input_shape, forecast_period)
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-            32, 64, 128], default=hp_filters)
+            32, 64, 96, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
             1, 2, 3, 5], default=hp_kernel_size)
 
@@ -1562,7 +1587,7 @@ def build_cnn_attention_bilstm_attention_model(hp, input_shape, forecast_period)
     bilstm_layers = []
     for i in range(hp_num_bilstm_layers):
         units = hp.Int(f'bilstm_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_bilstm_units)
+                       max_value=200, step=50, default=hp_bilstm_units)
         dropout = hp.Float(
             f'bilstm_dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
 
@@ -1576,7 +1601,7 @@ def build_cnn_attention_bilstm_attention_model(hp, input_shape, forecast_period)
 
     attention2 = Attention()([bilstm_output, bilstm_output])
 
-    output = Dense(forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer))(attention2)
 
     model = Model(inputs=inputs, outputs=output)
@@ -1591,17 +1616,18 @@ def build_cnn_attention_bigru_attention_model(hp, input_shape, forecast_period):
         'num_cnn_layers', min_value=1, max_value=3, step=1)
     hp_num_bigru_layers = hp.Int(
         'num_bigru_layers', min_value=1, max_value=3, step=1)
-    hp_filters = hp.Choice('filters', values=[32, 64, 128])
+    hp_filters = hp.Choice('filters', values=[32, 64, 96, 128])
     hp_kernel_size = hp.Choice('kernel_size', values=[1, 2, 3, 5])
-    hp_bigru_units = hp.Int('bigru_units', min_value=50, max_value=300, step=50)
+    hp_bigru_units = hp.Int('bigru_units', min_value=50, max_value=200, step=50)
     hp_dropout = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
     hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
     decay_steps = hp.Int('decay_steps', min_value=5000,
                          max_value=20000, step=5000)
     hp_optimizer_choice = hp.Choice(
         'optimizer', values=['adam', 'sgd', 'rmsprop'])
-    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.001, 0.01, 0.1])
-    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.001, 0.01, 0.1])
+    hp_l1_regularizer = hp.Choice('l1_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_l2_regularizer = hp.Choice('l2_regularizer', values=[0.00001, 0.001, 0.01, 0.1])
+    hp_activation = hp.Choice('activation', values=['linear', 'relu', 'softmax'])
 
     optimizer = custom_optimizer(
         hp_learning_rate, decay_steps, hp_optimizer_choice)
@@ -1614,7 +1640,7 @@ def build_cnn_attention_bigru_attention_model(hp, input_shape, forecast_period):
     cnn_layers = []
     for i in range(hp_num_cnn_layers):
         filters = hp.Choice(f'filters_{i}', values=[
-            32, 64, 128], default=hp_filters)
+            32, 64, 96, 128], default=hp_filters)
         kernel_size = hp.Choice(f'kernel_size_{i}', values=[
             1, 2, 3, 5], default=hp_kernel_size)
 
@@ -1637,7 +1663,7 @@ def build_cnn_attention_bigru_attention_model(hp, input_shape, forecast_period):
     bigru_layers = []
     for i in range(hp_num_bigru_layers):
         units = hp.Int(f'bigru_units_{i}', min_value=50,
-                       max_value=300, step=50, default=hp_bigru_units)
+                       max_value=200, step=50, default=hp_bigru_units)
         dropout = hp.Float(
             f'bigru_dropout_{i}', min_value=0.1, max_value=0.5, step=0.1, default=hp_dropout)
 
@@ -1651,7 +1677,7 @@ def build_cnn_attention_bigru_attention_model(hp, input_shape, forecast_period):
 
     attention2 = Attention()([bigru_output, bigru_output])
 
-    output = Dense(forecast_period, activation='linear', kernel_regularizer=l1_l2(
+    output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
         hp_l1_regularizer, hp_l2_regularizer))(attention2)
 
     model = Model(inputs=inputs, outputs=output)
@@ -1729,7 +1755,7 @@ def build_model(hp, model_type, input_shape, forecast_period):
             "Invalid model type. Please choose from the available models.")
 
 
-def tune_custom_model(dataX, input_shape, forecast_period, model_type):
+def tune_custom_model(dataX, input_shape, forecast_period, model_type, band):
     x_train, y_train, x_val, y_val = dataX
 
     def build_hypermodel(hp):
@@ -1741,14 +1767,14 @@ def tune_custom_model(dataX, input_shape, forecast_period, model_type):
         max_epochs=EPOCH,
         factor=3,
         hyperband_iterations=3,
-        directory=CHECK_HYPERBAND,
-        project_name=model_type
+        directory=band,
+        project_name=model_type,
     )
 
     # tuner.search_space_summary()
-    early_stopping = EarlyStopping(monitor='val_loss', patience=8, verbose=1)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=10, verbose=1)
 
-    tuner.search(x_train, y_train, epochs=20, validation_data=(
+    tuner.search(x_train, y_train, epochs=EPOCH, validation_data=(
         x_val, y_val), callbacks=[early_stopping])
 
     best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]

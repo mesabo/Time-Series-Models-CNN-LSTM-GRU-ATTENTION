@@ -59,18 +59,15 @@ def create_dataset(dataset, look_back, forecast_period):
 
 def split_dataset(data_normalized, look_back, forecast_period):
     train_size = int(len(data_normalized) * 0.7)
-    val_size = int(len(data_normalized) * 0.15)
-    test_size = len(data_normalized) - train_size - val_size
+    test_size = len(data_normalized) - train_size
 
     train = data_normalized[:train_size]
-    val = data_normalized[train_size:train_size + val_size]
     test = data_normalized[-test_size:]
 
     trainX, trainY = create_dataset(train, look_back, forecast_period)
-    valX, valY = create_dataset(val, look_back, forecast_period)
     testX, testY = create_dataset(test, look_back, forecast_period)
 
-    return trainX, trainY, valX, valY, testX, testY
+    return trainX, trainY, testX, testY
 
 
 def load_dataset(dataset_type='ELECTRICITY', period='D'):
@@ -103,6 +100,6 @@ def preprocess_and_split_dataset(url, period, look_back, forecast_period):
     # Combine scaled features and target variable
     scaled_dataset = np.concatenate((scaled_features, scaled_target), axis=1)
 
-    trainX, trainY, valX, valY, testX, testY = split_dataset(scaled_dataset, look_back, forecast_period)
+    trainX, trainY, testX, testY = split_dataset(scaled_dataset, look_back, forecast_period)
 
-    return trainX, trainY, valX, valY, testX, testY, scaler_target
+    return trainX, trainY, testX, testY, scaler_target

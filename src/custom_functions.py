@@ -94,8 +94,8 @@ def plot_evaluation_metrics(mse, mae, rmse, mape, model, save_path=None):
 
 def plot_predictions(predicted, actual, model, save_path=None):
     plt.figure(figsize=(10, 6))
-    plt.plot(actual[:, 0], label='Actual')
-    plt.plot(predicted[:, 0], label='Predicted')
+    plt.plot(actual[:int(len(actual/3)), 0], label='Actual')
+    plt.plot(predicted[:int(len(predicted/3)), 0], label='Predicted')
     plt.xlabel('Period')
     plt.ylabel('Global Active Power')
     plt.title(f'{model} - Actual vs Predicted')

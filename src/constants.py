@@ -11,10 +11,10 @@ EPOCH = 100
 BATCH_SIZE = 64
 SEEDER = 2024
 PARAMS_GRID = {'batch_size': [16, 32, 64, 128, 256, 512]}
-ELECTRICITY = 'ELECTRICITY'
-WATER = 'WATER'
-WIND = 'WIND'
-GOLD = 'GOLD'
+ELECTRICITY = 'electricity'
+WATER = 'water'
+WIND = 'wind'
+GOLD = 'gold'
 # Simple models
 LSTM_MODEL = "LSTM-based"
 GRU_MODEL = "GRU-based"
@@ -62,17 +62,21 @@ CNN_ATTENTION_BiLSTM_ATTENTION_MODEL = "CNN-Attention-BiLSTM-Attention-based"
 CNN_ATTENTION_BiGRU_ATTENTION_MODEL = "CNN-Attention-BiGRU-Attention-based"
 
 # Define saving paths
-SAVING_MODEL_DIR = "../output/models/"
-SAVING_METRIC_DIR = "../output/metrics/"
-SAVING_PREDICTION_DIR = "../output/predictions/"
-SAVING_LOSS_DIR = "../output/losses/"
-SAVING_METRICS_PATH = "../output/metrics/evaluation_metrics.json"
-SAVING_LOSSES_PATH = "../output/losses/models_losses.json"
+SAVING_MODEL_DIR = "models/"
+SAVING_METRIC_DIR = "metrics/"
+SAVING_PREDICTION_DIR = "predictions/"
+SAVING_LOSS_DIR = "losses/"
+SAVING_METRICS_PATH = "metrics/evaluation_metrics.json"
+SAVING_LOSSES_PATH = "losses/models_losses.json"
 
 # Define dataset paths
 DATASET_FEATURES_PATH = "../input/data_features.json"
-ELECTRICITY_DATASET_PATH = "../input/household_power_consumption.txt"
+ELECTRICITY_DATASET_PATH = "../input/electricity/household_power_consumption.txt"
+GOLD_DATASET_PATH = "../input/gold/GoldPrice.csv"
+AIR_DATASET_PATH = "../input/air/AirQualityUCI.csv"
 
-CHECK_PATH = "../output/checks/"
-CHECK_HYPERBAND = "../output/hyperband/"
-CHECK_HYPERBAND_PATH = "../output/hyperband/best_params.json"
+BASE_PATH = "../output/"
+CHECK_PATH = "checks/"
+CHECK_HYPERBAND = "hyperband/"
+HYPERBAND_PATH = "hyperband/"
+#CHECK_HYPERBAND_PATH = "hyperband/best_params.json"
