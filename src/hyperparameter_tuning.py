@@ -329,7 +329,7 @@ def build_lstm_attention_model(hp, input_shape, forecast_period):
     flattened = Flatten()(context)
 
     output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer))(flattened)
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer))(flattened)
 
     model = Model(inputs=inputs, outputs=output)
     model.compile(loss='mean_squared_error', optimizer=optimizer)
@@ -377,7 +377,7 @@ def build_gru_attention_model(hp, input_shape, forecast_period):
     flattened = Flatten()(context)
 
     output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer))(flattened)
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer))(flattened)
 
     model = Model(inputs=inputs, outputs=output)
     model.compile(loss='mean_squared_error', optimizer=optimizer)
@@ -426,7 +426,7 @@ def build_cnn_attention_model(hp, input_shape, forecast_period):
 
     flattened = Flatten()(context)
     output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer))(flattened)
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer))(flattened)
 
     model = Model(inputs=inputs, outputs=output)
     model.compile(loss='mean_squared_error', optimizer=optimizer)
@@ -477,7 +477,7 @@ def build_bilstm_attention_model(hp, input_shape, forecast_period):
     flattened = Flatten()(context)
 
     output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer))(flattened)
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer))(flattened)
 
     model = Model(inputs=inputs, outputs=output)
     model.compile(loss='mean_squared_error', optimizer=optimizer)
@@ -525,7 +525,7 @@ def build_bigru_attention_model(hp, input_shape, forecast_period):
     flattened = Flatten()(context)
 
     output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer))(flattened)
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer))(flattened)
 
     model = Model(inputs=inputs, outputs=output)
     model.compile(loss='mean_squared_error', optimizer=optimizer)
@@ -590,7 +590,7 @@ def build_cnn_lstm_model(hp, input_shape, forecast_period):
         model.add(Dropout(rate=dropout))
 
     model.add(Dense(units=forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer)))
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer)))
     model.compile(loss='mean_squared_error', optimizer=optimizer)
 
     model.summary()
@@ -651,7 +651,7 @@ def build_cnn_gru_model(hp, input_shape, forecast_period):
         model.add(Dropout(rate=dropout))
 
     model.add(Dense(units=forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer)))
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer)))
     model.compile(loss='mean_squared_error', optimizer=optimizer)
 
     model.summary()
@@ -713,7 +713,7 @@ def build_cnn_bilstm_model(hp, input_shape, forecast_period):
         model.add(Dropout(rate=dropout))
 
     model.add(Dense(units=forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer)))
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer)))
     model.compile(loss='mean_squared_error', optimizer=optimizer)
 
     model.summary()
@@ -775,7 +775,7 @@ def build_cnn_bigru_model(hp, input_shape, forecast_period):
         model.add(Dropout(rate=dropout))
 
     model.add(Dense(units=forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer)))
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer)))
     model.compile(loss='mean_squared_error', optimizer=optimizer)
 
     model.summary()
@@ -852,7 +852,7 @@ def build_cnn_lstm_attention_model(hp, input_shape, forecast_period):
     context = Concatenate(axis=-1)([cnn_output, lstm_output])
     flattened = Flatten()(context)
     output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer))(flattened)
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer))(flattened)
 
     model = Model(inputs=inputs, outputs=output)
     model.compile(loss='mean_squared_error', optimizer=optimizer)
@@ -928,7 +928,7 @@ def build_cnn_gru_attention_model(hp, input_shape, forecast_period):
     context = Concatenate(axis=-1)([cnn_output, gru_output])
     flattened = Flatten()(context)
     output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer))(flattened)
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer))(flattened)
 
     model = Model(inputs=inputs, outputs=output)
     model.compile(loss='mean_squared_error', optimizer=optimizer)
@@ -1005,7 +1005,7 @@ def build_cnn_bilstm_attention_model(hp, input_shape, forecast_period):
     context = Concatenate(axis=-1)([cnn_output, bilstm_output])
     flattened = Flatten()(context)
     output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer))(flattened)
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer))(flattened)
 
     model = Model(inputs=inputs, outputs=output)
     model.compile(loss='mean_squared_error', optimizer=optimizer)
@@ -1082,7 +1082,7 @@ def build_cnn_bigru_attention_model(hp, input_shape, forecast_period):
     context = Concatenate(axis=-1)([cnn_output, bigru_output])
     flattened = Flatten()(context)
     output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer))(flattened)
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer))(flattened)
 
     model = Model(inputs=inputs, outputs=output)
     model.compile(loss='mean_squared_error', optimizer=optimizer)
@@ -1157,7 +1157,7 @@ def build_cnn_attention_lstm_model(hp, input_shape, forecast_period):
         lstm_output = layer(lstm_output)
 
     output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer))(lstm_output)
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer))(lstm_output)
 
     model = Model(inputs=inputs, outputs=output)
     model.compile(loss='mean_squared_error', optimizer=optimizer)
@@ -1229,7 +1229,7 @@ def build_cnn_attention_gru_model(hp, input_shape, forecast_period):
         gru_output = layer(gru_output)
 
     output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer))(gru_output)
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer))(gru_output)
 
     model = Model(inputs=inputs, outputs=output)
     model.compile(loss='mean_squared_error', optimizer=optimizer)
@@ -1302,7 +1302,7 @@ def build_cnn_attention_bilstm_model(hp, input_shape, forecast_period):
         bilstm_output = layer(bilstm_output)
 
     output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer))(bilstm_output)
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer))(bilstm_output)
 
     model = Model(inputs=inputs, outputs=output)
     model.compile(loss='mean_squared_error', optimizer=optimizer)
@@ -1375,7 +1375,7 @@ def build_cnn_attention_bigru_model(hp, input_shape, forecast_period):
         bigru_output = layer(bigru_output)
 
     output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer))(bigru_output)
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer))(bigru_output)
 
     model = Model(inputs=inputs, outputs=output)
     model.compile(loss='mean_squared_error', optimizer=optimizer)
@@ -1452,7 +1452,7 @@ def build_cnn_attention_lstm_attention_model(hp, input_shape, forecast_period):
     attention2 = Attention()([lstm_output, lstm_output])
 
     output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer))(attention2)
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer))(attention2)
 
     model = Model(inputs=inputs, outputs=output)
     model.compile(loss='mean_squared_error', optimizer=optimizer)
@@ -1526,7 +1526,7 @@ def build_cnn_attention_gru_attention_model(hp, input_shape, forecast_period):
     attention2 = Attention()([gru_output, gru_output])
 
     output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer))(attention2)
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer))(attention2)
 
     model = Model(inputs=inputs, outputs=output)
     model.compile(loss='mean_squared_error', optimizer=optimizer)
@@ -1602,7 +1602,7 @@ def build_cnn_attention_bilstm_attention_model(hp, input_shape, forecast_period)
     attention2 = Attention()([bilstm_output, bilstm_output])
 
     output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer))(attention2)
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer))(attention2)
 
     model = Model(inputs=inputs, outputs=output)
     model.compile(loss='mean_squared_error', optimizer=optimizer)
@@ -1678,7 +1678,7 @@ def build_cnn_attention_bigru_attention_model(hp, input_shape, forecast_period):
     attention2 = Attention()([bigru_output, bigru_output])
 
     output = Dense(forecast_period, activation=hp_activation, kernel_regularizer=l1_l2(
-        hp_l1_regularizer, hp_l2_regularizer))(attention2)
+        l1=hp_l1_regularizer, l2=hp_l2_regularizer))(attention2)
 
     model = Model(inputs=inputs, outputs=output)
     model.compile(loss='mean_squared_error', optimizer=optimizer)
