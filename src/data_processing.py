@@ -10,6 +10,7 @@ Created on Tue Feb 20 17:50:00 2024
 
 import pandas as pd
 import numpy as np
+from scipy.interpolate import interp1d
 from sklearn.preprocessing import MinMaxScaler
 import json
 from constants import (DATASET_FEATURES_PATH, ELECTRICITY_DATASET_PATH,
@@ -56,6 +57,15 @@ def create_dataset(dataset, look_back, forecast_period):
             dataset[(i + look_back):(i + look_back + forecast_period), 0])  # Assuming first column is output feature
     return np.array(X), np.array(Y)
 
+def time_warping(series, sigma=0.2):
+    n = len(series)
+    time_stretching = np.cumsum(np.random.randn(n) * sigma)
+    time_stretching -= time_stretching.min()
+    time_stretching /= time_stretching.max()
+    new_time = np.arange(n)
+    warped_time = new_time + time_stretching * (n - 1)
+    warped_series = interp1d(warped_time, series, bounds_error=False, fill_value="extrapolate")(new_time)
+    return warped_series
 
 def split_dataset(data_normalized, look_back, forecast_period):
     train_size = int(len(data_normalized) * 0.7)
@@ -100,6 +110,12 @@ def preprocess_and_split_dataset(url, period, look_back, forecast_period):
     # Combine scaled features and target variable
     scaled_dataset = np.concatenate((scaled_features, scaled_target), axis=1)
 
-    trainX, trainY, testX, testY = split_dataset(scaled_dataset, look_back, forecast_period)
+    # Apply time warping to the features (excluding the target variable)
+    warped_features = np.apply_along_axis(time_warping, axis=0, arr=scaled_dataset[:, :-1])
+
+    # Combine warped features with target variable
+    warped_dataset = np.concatenate((warped_features, scaled_dataset[:, -1].reshape(-1, 1)), axis=1)
+
+    trainX, trainY, testX, testY = split_dataset(warped_dataset, look_back, forecast_period)
 
     return trainX, trainY, testX, testY, scaler_target

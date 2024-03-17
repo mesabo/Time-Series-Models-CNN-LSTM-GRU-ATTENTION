@@ -95,9 +95,9 @@ def main():
     series = [ELECTRICITY, ]
     model_types = [
         LSTM_MODEL, GRU_MODEL, CNN_MODEL, BiLSTM_MODEL, BiGRU_MODEL,
+        CNN_LSTM_MODEL, CNN_GRU_MODEL, CNN_BiLSTM_MODEL, CNN_BiGRU_MODEL,
         LSTM_ATTENTION_MODEL, GRU_ATTENTION_MODEL, CNN_ATTENTION_MODEL,
         BiLSTM_ATTENTION_MODEL, BiGRU_ATTENTION_MODEL,
-        CNN_LSTM_MODEL, CNN_GRU_MODEL, CNN_BiLSTM_MODEL, CNN_BiGRU_MODEL,
         CNN_LSTM_ATTENTION_MODEL, CNN_GRU_ATTENTION_MODEL,
         CNN_BiLSTM_ATTENTION_MODEL, CNN_BiGRU_ATTENTION_MODEL,
         CNN_ATTENTION_LSTM_MODEL, CNN_ATTENTION_GRU_MODEL,
@@ -114,13 +114,14 @@ def main():
                                                                         forecast_periods[1])
     input_shape = trainX.shape[-2:]
 
-    # final_model = run_model(input_shape, forecast_periods[1], trainX, trainY, testX, testY, scaler, CNN_MODEL, ELECTRICITY)
+    for model in model_types: #[CNN_MODEL]
+        final_model = run_model(input_shape, forecast_periods[1], trainX, trainY, testX, testY, scaler, model, ELECTRICITY)
 
     # testPredict, testOutput = make_predictions(final_model, valX, valY, scaler)
     # plot_predictions(testPredict, testOutput, CNN_MODEL, BASE_PATH + ELECTRICITY + '/' + SAVING_PREDICTION_DIR)
 
     ##### HYPER PARAMETER TUNING  ALL THE MODELS
-    tune_models(look_backs, forecast_periods, model_types, series)
+    #tune_models(look_backs, forecast_periods, model_types, series)
 
 
 if __name__ == "__main__":
