@@ -106,22 +106,23 @@ def main():
         CNN_ATTENTION_BiLSTM_ATTENTION_MODEL, CNN_ATTENTION_BiGRU_ATTENTION_MODEL, ]
 
     # Given look_back days observations, forecast next forecast_period observations
-    look_backs = [7, 10, 14, 15, 20, 30]
-    forecast_periods = [1, 2, 3, 4, 5, 6, 7]
+    look_backs = [7, 10, 14, 30]
+    forecast_periods = [1, 2, 3, 6, 7]
 
     # Preprocess and split dataset
     trainX, trainY, testX, testY, scaler = preprocess_and_split_dataset(ELECTRICITY, "D", look_backs[0],
                                                                         forecast_periods[1])
     input_shape = trainX.shape[-2:]
 
-    for model in model_types: #[CNN_MODEL]
-        final_model = run_model(input_shape, forecast_periods[1], trainX, trainY, testX, testY, scaler, model, ELECTRICITY)
+    for model in model_types:  # [CNN_MODEL]
+        final_model = run_model(input_shape, forecast_periods[1], trainX, trainY, testX, testY, scaler, model,
+                                ELECTRICITY)
 
     # testPredict, testOutput = make_predictions(final_model, valX, valY, scaler)
     # plot_predictions(testPredict, testOutput, CNN_MODEL, BASE_PATH + ELECTRICITY + '/' + SAVING_PREDICTION_DIR)
 
     ##### HYPER PARAMETER TUNING  ALL THE MODELS
-    #tune_models(look_backs, forecast_periods, model_types, series)
+    # tune_models(look_backs, forecast_periods, model_types, series)
 
 
 if __name__ == "__main__":
