@@ -6,23 +6,19 @@ Created on Thu Mar  7 17:02:22 2024
 @author: mesabo
 """
 from math import ceil
-from sklearn.model_selection import GridSearchCV
 
-from keras.models import Sequential, Model
-from keras.layers import (LSTM, Dense, Flatten, Conv1D, MaxPooling1D, GRU,
-                          Bidirectional, TimeDistributed, Attention, Input,
-                          Reshape, RepeatVector, Masking, Concatenate, dot,
-                          Permute, Dropout, BatchNormalization)
-from keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
-from keras.optimizers import Adam, SGD, RMSprop
-from scikeras.wrappers import KerasClassifier, KerasRegressor
-from keras.regularizers import l1, l2, l1_l2
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.layers import (LSTM, Dense, Flatten, Conv1D, MaxPooling1D, GRU,
+                          Bidirectional, Attention, Input,
+                          Masking, Concatenate, dot,
+                          Dropout, BatchNormalization)
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.optimizers import Adam, SGD, RMSprop
+from tensorflow.keras.regularizers import l1, l2, l1_l2
 
 from kerastuner import Hyperband
-from kerastuner.engine.hyperparameters import HyperParameters
 
 from tensorflow.keras.optimizers.schedules import ExponentialDecay
-import tensorflow as tf
 
 from constants import (
     LSTM_MODEL, GRU_MODEL, CNN_MODEL, BiLSTM_MODEL, BiGRU_MODEL,

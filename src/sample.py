@@ -2,17 +2,21 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
-from keras.models import Sequential
-from keras.layers import LSTM, Dense
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
+import tensorflow as tf
+import json
+
 
 def load_and_create_dataset():
     # Generate synthetic dataset with 1000 rows and 4 columns
-    num_rows = 1000
+    num_rows = 1000000
     num_columns = 4
     dataset = np.random.rand(num_rows, num_columns)
     # Convert to DataFrame
     dataset = pd.DataFrame(dataset, columns=['Feature1', 'Feature2', 'Feature3', 'Target'])
     return dataset
+
 
 def normalize_and_split_dataset(dataset, look_back, forecast_days):
     # Separate features and target variable
@@ -33,8 +37,8 @@ def normalize_and_split_dataset(dataset, look_back, forecast_days):
     # Split into input and output
     X, y = [], []
     for i in range(len(scaled_dataset) - look_back - forecast_days + 1):
-        X.append(scaled_dataset[i : (i + look_back), :-1])
-        y.append(scaled_dataset[i + look_back : i + look_back + forecast_days, -1])
+        X.append(scaled_dataset[i: (i + look_back), :-1])
+        y.append(scaled_dataset[i + look_back: i + look_back + forecast_days, -1])
 
     X, y = np.array(X), np.array(y)
 
@@ -46,35 +50,44 @@ def normalize_and_split_dataset(dataset, look_back, forecast_days):
     return X_train, X_test, y_train, y_test, scaler_features, scaler_target
 
 
-
 def create_model(look_back, n_features, forecast_days):
     model = Sequential()
+    # model.add(LSTM(units=300, input_shape=(look_back, n_features), return_sequences=True))
+    # model.add(LSTM(units=200, input_shape=(look_back, n_features), return_sequences=True))
+    # model.add(LSTM(units=100, input_shape=(look_back, n_features), return_sequences=True))
     model.add(LSTM(units=50, input_shape=(look_back, n_features)))
-    # Output layer now predicts `forecast_days` values instead of 1
     model.add(Dense(units=forecast_days))
     model.compile(optimizer="adam", loss="mean_squared_error")
     return model
+
 
 def train_model(model, X_train, y_train, epochs, batch_size):
     model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, verbose=1)
     return model
 
+
 def predict_forecast(model, X_test):
     forecast = model.predict(X_test)
     return forecast
+
 
 def calculate_l_rmse(y_true, y_pred):
     return np.sqrt(mean_squared_error(y_true, y_pred)) / np.mean(y_true) * 100
 
 
 def main():
+    # Specify GPU device
+    physical_devices = tf.config.list_physical_devices('GPU')
+    if physical_devices:
+        tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
     # Step 1: Load and create dataset
     dataset = load_and_create_dataset()
 
     # Step 2: Set parameters
     look_back = 30
-    forecast_days = 2
-    epochs = 2
+    forecast_days = 7
+    epochs = 1000
     batch_size = 64
 
     # Step 3: Normalize and split dataset
@@ -101,6 +114,14 @@ def main():
     l_rmse = calculate_l_rmse(y_test_inv, forecast)
 
     print("L-RMSE:", l_rmse)
+
+    # Step 10: Save the output to a JSON file
+    output = {"L-RMSE": l_rmse}
+    output_file_path = "../output/sample.json"
+    with open(output_file_path, "w") as output_file:
+        json.dump(output, output_file)
+
+    print("Output saved to:", output_file_path)
 
 
 if __name__ == "__main__":

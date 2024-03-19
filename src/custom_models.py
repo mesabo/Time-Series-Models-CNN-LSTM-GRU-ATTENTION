@@ -9,17 +9,17 @@ from math import ceil
 import  numpy as np
 from sklearn.model_selection import GridSearchCV
 
-from keras.models import Sequential, Model
-from keras.layers import (LSTM, Dense, Flatten, Conv1D, MaxPooling1D, GRU,
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.layers import (LSTM, Dense, Flatten, Conv1D, MaxPooling1D, GRU,
                           Bidirectional, Input,
                           Masking, Concatenate, dot,
                           Permute, Dropout, BatchNormalization)
-from keras.callbacks import EarlyStopping
-from keras.optimizers import Adam, SGD, RMSprop
-from keras.wrappers.scikit_learn import KerasRegressor
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.optimizers import Adam, SGD, RMSprop
+from tensorflow.keras.wrappers.scikit_learn import KerasRegressor
 # from scikeras.wrappers import KerasRegressor
 
-from keras.regularizers import l1, l2
+from tensorflow.keras.regularizers import l1, l2
 
 from tensorflow.keras.optimizers.schedules import ExponentialDecay
 
