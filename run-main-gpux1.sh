@@ -6,5 +6,5 @@ hostname
 echo USED GPUs=$CUDA_VISIBLE_DEVICES
 
 source activate messou_env
-cd /home/23r9802_chen/messou/multivariate_time_series/
+cd /home/users/messou/multivariate_time_series/
 python ./src/main.py
